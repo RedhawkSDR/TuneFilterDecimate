@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="ASCII"?>
+<!-- 
+This file is protected by Copyright. Please refer to the COPYRIGHT file distributed with this 
+source distribution.
+
+This file is part of REDHAWK Basic Components.
+
+REDHAWK Basic Components is free software: you can redistribute it and/or modify it under the terms of 
+the GNU Lesser General Public License as published by the Free Software Foundation, either 
+version 3 of the License, or (at your option) any later version.
+
+REDHAWK Basic Components is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+PURPOSE.  See the GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License along with this 
+program.  If not, see http://www.gnu.org/licenses/.
+-->
+<codegen:WaveDevSettings xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:codegen="http://www.redhawk.gov/model/codegen">
+  <implSettings key="cpp">
+    <value outputDir="cpp" template="gov.redhawk.ide.codegen.jet.cplusplus.PullPortDataTemplate" generatorId="gov.redhawk.ide.codegen.jet.cplusplus.CplusplusGenerator" primary="true">
+      <generatedFileCRCs crc="2375065508" file="TuneFilterDecimate.h"/>
+      <generatedFileCRCs crc="1746641546" file="reconf"/>
+      <generatedFileCRCs crc="2080585166" file="port_impl.cpp"/>
+      <generatedFileCRCs crc="3139099527" file="TuneFilterDecimate.cpp"/>
+      <generatedFileCRCs crc="864280150" file="build.sh"/>
+      <generatedFileCRCs crc="979370793" file="configure.ac"/>
+      <generatedFileCRCs crc="2318939763" file="port_impl.h"/>
+      <generatedFileCRCs crc="1169112111" file="main.cpp"/>
+      <generatedFileCRCs crc="4037455673" file="struct_props.h"/>
+      <generatedFileCRCs crc="1489671033" file="../TuneFilterDecimate.spec"/>
+      <generatedFileCRCs crc="3543399967" file="TuneFilterDecimate_base.h"/>
+      <generatedFileCRCs crc="3800332514" file="Makefile.am"/>
+      <generatedFileCRCs crc="3601254293" file="TuneFilterDecimate_base.cpp"/>
+    </value>
+  </implSettings>
+</codegen:WaveDevSettings>
