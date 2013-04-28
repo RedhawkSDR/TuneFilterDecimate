@@ -141,6 +141,33 @@ void TuneFilterDecimate_base::releaseObject() throw (CORBA::SystemException, CF:
 
 void TuneFilterDecimate_base::loadProperties()
 {
+    addProperty(TuneMode,
+                "NORM", 
+               "TuneMode",
+               "",
+               "readwrite",
+               "",
+               "external",
+               "execparam");
+
+    addProperty(TuningNorm,
+                0.0, 
+               "TuningNorm",
+               "",
+               "readwrite",
+               "",
+               "external",
+               "configure");
+
+    addProperty(TuningIF,
+                0, 
+               "TuningIF",
+               "",
+               "readwrite",
+               "Hz",
+               "external",
+               "configure");
+
     addProperty(TuningRF,
                 0, 
                "TuningRF",
@@ -165,6 +192,32 @@ void TuneFilterDecimate_base::loadProperties()
                "",
                "readwrite",
                "Hz",
+               "external",
+               "configure");
+
+    addProperty(InputRF,
+                0.0, 
+               "InputRF",
+               "",
+               "readonly",
+               "Hz",
+               "external",
+               "configure");
+
+    addProperty(InputRate,
+                0.0, 
+               "InputRate",
+               "",
+               "readonly",
+               "Hz",
+               "external",
+               "configure");
+
+    addProperty(DecimationFactor,
+               "DecimationFactor",
+               "",
+               "readonly",
+               "",
                "external",
                "configure");
 

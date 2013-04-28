@@ -159,9 +159,15 @@ class TuneFilterDecimate_base : public Resource_impl
         boost::mutex serviceThreadLock;  
 
         // Member variables exposed as properties
-        CORBA::Long TuningRF;
+        std::string TuneMode;
+        double TuningNorm;
+        double TuningIF;
+        CORBA::ULongLong TuningRF;
         float FilterBW;
         float DesiredOutputRate;
+        double InputRF;
+        double InputRate;
+        CORBA::ULong DecimationFactor;
 
         // Ports
         BULKIO_dataFloat_In_i *dataFloat_In;

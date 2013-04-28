@@ -36,13 +36,16 @@ class TuneFilterDecimate_i : public TuneFilterDecimate_base
         TuneFilterDecimate_i(const char *uuid, const char *label);
         ~TuneFilterDecimate_i();
         int serviceFunction();
+
         void start() throw (CORBA::SystemException, CF::Resource::StartError);
-        // Redefine the base class' configure() function, declaring it as a public member
-        void configure(const CF::Properties& props) throw (CORBA::SystemException, CF::PropertySet::InvalidConfiguration, CF::PropertySet::PartialConfiguration);
 
     private:
         // Handle changes to the SRI
-        void configureSRI(BULKIO::StreamSRI &sri);
+        void configureTFD(BULKIO::StreamSRI &sri);
+
+        // Handle changes to tuner properties
+        void configureFilter(const std::string& propid);
+        void configureTuner(const std::string& propid);
 
         // Function to get an SRI keyword value
         template <typename TYPE> TYPE getKeywordByID(BULKIO::StreamSRI &sri, CORBA::String_member id, bool &valid) {
@@ -114,7 +117,6 @@ class TuneFilterDecimate_i : public TuneFilterDecimate_base
         // Private variables
         Real inputSampleRate;
         Real outputSampleRate;
-        long col_rf;
         long chan_rf;
         bool TuningRFChanged; // Used to indicate if TuningRF has been changed so the CHAN_RF keyword can be added to SRI
         bool RemakeFilter;    // Used to indicate we must redo the filter
