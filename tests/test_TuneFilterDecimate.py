@@ -43,7 +43,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         myProps=[]
         if TuningRF!=None:
             self.TuningRF = TuningRF
-            myProps.append(CF.DataType(id='TuningRF',value=CORBA.Any(CORBA.TC_long, self.TuningRF)))
+            myProps.append(CF.DataType(id='TuningRF',value=CORBA.Any(CORBA.TC_ulonglong, self.TuningRF)))
 
         if FilterBW!=None:
             self.FilterBW = FilterBW
