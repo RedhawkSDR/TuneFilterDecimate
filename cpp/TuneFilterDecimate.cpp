@@ -1,21 +1,20 @@
 /*
- * This file is protected by Copyright. Please refer to the COPYRIGHT file distributed with this 
+ * This file is protected by Copyright. Please refer to the COPYRIGHT file distributed with this
  * source distribution.
- * 
+ *
  * This file is part of REDHAWK Basic Components.
- * 
- * REDHAWK Basic Components is free software: you can redistribute it and/or modify it under the terms of 
- * the GNU Lesser General Public License as published by the Free Software Foundation, either 
+ *
+ * REDHAWK Basic Components is free software: you can redistribute it and/or modify it under the terms of
+ * the GNU Lesser General Public License as published by the Free Software Foundation, either
  * version 3 of the License, or (at your option) any later version.
- * 
- * REDHAWK Basic Components is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+ *
+ * REDHAWK Basic Components is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along with this 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along with this
  * program.  If not, see http://www.gnu.org/licenses/.
  */
-
 /**************************************************************************
 
     This is the component code. This file contains the child class where
@@ -23,19 +22,13 @@
     functionality to the base class can be extended here. Access to
     the ports can also be done from this class
 
- 	Source: TuneFilterDecimate.spd.xml
- 	Generated on: Mon Jul 16 18:37:11 EDT 2012
- 	Redhawk IDE
- 	Version:T.1.8.X
- 	Build id: v201207131522-r8855
-
 **************************************************************************/
 
 #include "TuneFilterDecimate.h"
 
 PREPARE_LOGGING(TuneFilterDecimate_i)
 
-TuneFilterDecimate_i::TuneFilterDecimate_i(const char *uuid, const char *label) : 
+TuneFilterDecimate_i::TuneFilterDecimate_i(const char *uuid, const char *label) :
     TuneFilterDecimate_base(uuid, label)
 {
     LOG_TRACE(TuneFilterDecimate_i, "TuneFilterDecimate() constructor entry");
@@ -72,9 +65,12 @@ TuneFilterDecimate_i::TuneFilterDecimate_i(const char *uuid, const char *label) 
 
 TuneFilterDecimate_i::~TuneFilterDecimate_i()
 {
-	delete tuner;
-	delete filter;
-	delete decimate;
+	if (tuner)
+		delete tuner;
+	if (filter)
+		delete filter;
+	if (decimate)
+		delete decimate;
 }
 
 void TuneFilterDecimate_i::configureFilter(const std::string& propid) {
@@ -150,10 +146,9 @@ void TuneFilterDecimate_i::start() throw (CORBA::SystemException, CF::Resource::
 
 }
 
-
 int TuneFilterDecimate_i::serviceFunction()
 {
-	BULKIO_dataFloat_In_i::dataTransfer *pkt = dataFloat_In->getPacket(0.0); // non-blocking
+	bulkio::InFloatPort::dataTransfer *pkt = dataFloat_In->getPacket(0.0); // non-blocking
 	if(pkt == NULL) return NOOP;
 
     if (streamID!=pkt->streamID)
@@ -170,7 +165,8 @@ int TuneFilterDecimate_i::serviceFunction()
     }
 
 	// Check if SRI has been changed
-	if(pkt->sriChanged || RemakeFilter || TuningRFChanged || (dataFloat_Out->currentSRIs.count(pkt->streamID)==0)) {
+    std::cerr<<"uncomment this line after 1.9.0 next release candidate"<<std::endl;
+	if(pkt->sriChanged || RemakeFilter || TuningRFChanged) {// || (dataFloat_Out->currentSRIs.count(pkt->streamID)==0)) {
 		LOG_DEBUG(TuneFilterDecimate_i, "Reconfiguring TFD");
 	    configureTFD(pkt->SRI); // Process and/or update the SRI
 		dataFloat_Out->pushSRI(pkt->SRI); // Push the new SRI to the next component
@@ -330,6 +326,6 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri)
         RemakeFilter = false;
 	}
 
-
 	LOG_TRACE(TuneFilterDecimate_i, "Exit configureSRI()");
 }
+

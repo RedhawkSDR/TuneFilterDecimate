@@ -36,28 +36,21 @@ Group: REDHAWK/Components
 Source: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 
-Requires: redhawk >= 1.8
-BuildRequires: redhawk >= 1.8
+Requires: redhawk >= 1.9
+BuildRequires: redhawk-devel >= 1.9
 BuildRequires: autoconf automake libtool
 
 # Interface requirements
 Requires: bulkioInterfaces
 BuildRequires: bulkioInterfaces
 
-# C++ requirements
-Requires: libomniORB4.1
-Requires: boost >= 1.41
-Requires: apache-log4cxx >= 0.10
-BuildRequires: boost-devel >= 1.41
-BuildRequires: libomniORB4.1-devel
-BuildRequires: apache-log4cxx-devel >= 0.10
-
-
 %description
 Component %{name}
 
+
 %prep
 %setup
+
 
 %build
 # Implementation cpp
@@ -65,24 +58,28 @@ pushd cpp
 ./reconf
 %define _bindir %{_prefix}/dom/components/TuneFilterDecimate/cpp
 %configure
-make
+make %{?_smp_mflags}
 popd
+
 
 %install
 rm -rf $RPM_BUILD_ROOT
 # Implementation cpp
 pushd cpp
-%define _bindir %{_prefix}/dom/components/TuneFilterDecimate/cpp 
+%define _bindir %{_prefix}/dom/components/TuneFilterDecimate/cpp
 make install DESTDIR=$RPM_BUILD_ROOT
 popd
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+
 %files
 %defattr(-,redhawk,redhawk)
 %dir %{_prefix}/dom/components/%{name}
-%{_prefix}/dom/components/%{name}/TuneFilterDecimate.spd.xml
-%{_prefix}/dom/components/%{name}/TuneFilterDecimate.prf.xml
 %{_prefix}/dom/components/%{name}/TuneFilterDecimate.scd.xml
+%{_prefix}/dom/components/%{name}/TuneFilterDecimate.prf.xml
+%{_prefix}/dom/components/%{name}/TuneFilterDecimate.spd.xml
 %{_prefix}/dom/components/%{name}/cpp
+
