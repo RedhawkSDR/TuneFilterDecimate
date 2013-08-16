@@ -167,8 +167,7 @@ int TuneFilterDecimate_i::serviceFunction()
     }
 
 	// Check if SRI has been changed
-    std::cerr<<"uncomment this line after 1.9.0 next release candidate"<<std::endl;
-	if(pkt->sriChanged || RemakeFilter || TuningRFChanged) {// || (dataFloat_Out->currentSRIs.count(pkt->streamID)==0)) {
+	if(pkt->sriChanged || RemakeFilter || TuningRFChanged || (dataFloat_Out->getCurrentSRI().count(pkt->streamID)==0)) {
 		LOG_DEBUG(TuneFilterDecimate_i, "Reconfiguring TFD");
 	    configureTFD(pkt->SRI); // Process and/or update the SRI
 		dataFloat_Out->pushSRI(pkt->SRI); // Push the new SRI to the next component
