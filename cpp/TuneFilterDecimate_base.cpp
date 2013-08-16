@@ -137,7 +137,7 @@ void TuneFilterDecimate_base::loadProperties()
                 "readwrite",
                 "",
                 "external",
-                "execparam");
+                "execparam,configure");
 
     addProperty(TuningNorm,
                 0.0,

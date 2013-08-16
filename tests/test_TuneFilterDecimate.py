@@ -30,6 +30,18 @@ from ossie.cf import ExtendedCF
 from scipy import fftpack
 import random
 
+def genSinWave(fs, freq, numPts, cx=True, startTime=0, amp=1):
+    xd = 1.0/fs
+    phase =  2*math.pi*startTime
+    phaseInc = 2*math.pi*freq/fs
+    output = []
+    for i in xrange(numPts): 
+        output.append(amp*math.cos(phase))
+        if cx:
+            output.append(amp*math.sin(phase))
+        phase+=phaseInc
+    return output
+
 def toCx(input):
     output =[]
     for i in xrange(len(input)/2):
@@ -39,7 +51,17 @@ def toCx(input):
 class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
     """Test for all component implementations in TuneFilterDecimate"""
 
-    def setProps(self, TuningRF=None, FilterBW=None, DesiredOutputRate=None):
+    def verifyConst(self, out):
+        self.assertTrue(len(out)>0)
+        steadyState = out[100:]
+        r = [x.real for x in steadyState]
+        i = [x.imag for x in steadyState]
+        dR = max(r)-min(r)
+        dI = max(i)-min(i)
+        self.assertTrue(dR<1)
+        self.assertTrue(dI<1)    
+    
+    def setProps(self, TuningRF=None, FilterBW=None, DesiredOutputRate=None, TuneMode=None, TuningIF=None, TuningNorm=None):
         myProps=[]
         if TuningRF!=None:
             self.TuningRF = TuningRF
@@ -53,8 +75,20 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
             self.DesiredOutputRate = DesiredOutputRate
             myProps.append(CF.DataType(id='DesiredOutputRate',value=CORBA.Any(CORBA.TC_float, self.DesiredOutputRate)))
 
-        if myProps:
+        if TuneMode!=None:
+            self.TuneMode = TuneMode
+            myProps.append(CF.DataType(id='TuneMode',value=CORBA.Any(CORBA.TC_string, TuneMode)))
+            
+        if TuningIF!=None:
+            self.TuningIF = TuningIF
+            myProps.append(CF.DataType(id='TuningIF',value=CORBA.Any(CORBA.TC_double, TuningIF)))
 
+        if TuningNorm!=None:
+            self.TuningNorm = TuningNorm
+            myProps.append(CF.DataType(id='TuningNorm',value=CORBA.Any(CORBA.TC_double, TuningNorm)))
+
+        if myProps:
+            print "configuring with ", myProps
             #configure it
             self.comp.configure(myProps)
             print self.comp.query([])
@@ -139,30 +173,55 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
             self.assertEqual(port_obj._is_a(port.get_repid()),  True)
 
                 
-    def testConstOutput(self):
-        """Input a complex sinusoid and center tune it down to dc
-           Verify the ouptut is a constant
+    def testCxIfOutput(self):
+        """Use a complex sinusoid with the tuner in If Mode.  Tune the Sinusoid to baseband to get a constant output
         """
-        f= 800
-        T=20000
-        self.setProps(TuningRF=f,FilterBW=500.0, DesiredOutputRate=700.0)
-        delF = 2*math.pi*f/T 
-        input = [] 
-        for i in xrange(1024*1024):
-            phase = delF*i
-            input.append(math.cos(phase))
-            input.append(math.sin(phase))
+        fs=20000
+        freq= 800
+        self.setProps(TuneMode="IF", TuningIF=freq,FilterBW=300.0, DesiredOutputRate=700.0)
+        sig = genSinWave(fs, freq, 1024*1024)
+ 
+        out = self.main(sig,sampleRate=fs)
+        self.verifyConst(out)
 
-        out = self.main(input,sampleRate=T)
-        self.assertTrue(len(out)>0)
-        steadyState = out[100:]
-        r = [x.real for x in steadyState]
-        i = [x.imag for x in steadyState]
-        dR = max(r)-min(r)
-        dI = max(i)-min(i)
-        self.assertTrue(dR<1)
-        self.assertTrue(dI<1)        
+    def testCxNormOutput(self):
+        """Use a complex sinusoid with the tuner in Norm Mode.  Tune the Sinusoid to baseband to get a constant output
+        """
+        fs=20000
+        freq= 800
+        tuningNorm = freq/2.0/fs
+        self.setProps(TuneMode="NORM", TuningNorm=freq,FilterBW=300.0, DesiredOutputRate=700.0)
+        sig = genSinWave(fs, freq, 1024*1024)
+ 
+        out = self.main(sig,sampleRate=fs)
+        self.verifyConst(out)
 
+    def testCxRfTune(self):
+        """Use a complex sinusoid with the tuner in RfMode.  Tune the Sinusoid to baseband to get a constant output
+        """
+        fs = 10000
+        freq = 3000
+        colRF = 100e3
+        tuneRf = colRF+freq
+        self.setProps(TuningRF=int(tuneRf),FilterBW=200.0, DesiredOutputRate=1000.0)
+        sig = genSinWave(fs, freq, 1024*1024)
+        
+        out = self.main(sig, fs, colRF=colRF)
+        self.verifyConst(out)
+
+    def testRealRfTune(self):
+        """Use a real sinusoid with the tuner in RfMode.  Tune the Sinusoid to baseband to get a constant output
+        """
+        fs = 10000
+        freq = 3000
+        colRF = 100e3
+        tuneRf = colRF+freq-fs/4.0
+        self.setProps(TuningRF=int(tuneRf),FilterBW=200.0, DesiredOutputRate=1000.0)
+        sig = genSinWave(fs, freq, 1024*1024, cx=False)
+        
+        out = self.main(sig, fs, colRF=colRF,complexData=False)
+        self.verifyConst(out)            
+ 
     def testOutputBW(self):
         """Send white noise threw the system and verify the fitler BW is appropriate
         """
@@ -250,14 +309,14 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         error = sum([abs(x-y) for x, y in zip(scaled, expectedSteadyState)])/len(steadyState)
         self.assertTrue(error<2)
         
-    def main(self,inData, sampleRate, colRF=0.0):
+    def main(self,inData, sampleRate, colRF=0.0, complexData = True):
         """The main engine for all the test cases - configure the equation, push data, and get output
            As applicable
         """
         #data processing is asynchronos - so wait until the data is all processed
         count=0
         self.src.push(inData,
-                      complexData = True, 
+                      complexData = complexData, 
                       sampleRate=sampleRate,
                       SRIKeywords = [sb.io_helpers.SRIKeyword('COL_RF',colRF, 'long')])
         out=[]
@@ -275,7 +334,6 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         outputRate = 1.0/ sri.xdelta
         expectedDecimation = math.floor(sampleRate/self.DesiredOutputRate)
         expectedOutputRate = sampleRate/expectedDecimation
-        self.assertTrue(outputRate>self.DesiredOutputRate)
         self.assertAlmostEqual(expectedOutputRate,outputRate, places=2)
         
         return toCx(out)

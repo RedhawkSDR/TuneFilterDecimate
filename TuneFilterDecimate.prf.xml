@@ -26,6 +26,7 @@ program.  If not, see http://www.gnu.org/licenses/.
       <enumeration label="RF" value="RF"/>
     </enumerations>
     <kind kindtype="execparam"/>
+    <kind kindtype="configure"/>
     <action type="external"/>
   </simple>
   <simple id="TuningNorm" mode="readwrite" type="double">

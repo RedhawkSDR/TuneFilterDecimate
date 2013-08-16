@@ -49,9 +49,10 @@ TuneFilterDecimate_i::TuneFilterDecimate_i(const char *uuid, const char *label) 
 
     // Initialize private variables
     inputIndex = 0;
-    chan_rf = 0;
+    chan_if = 0;
     TuningRFChanged = false;
     RemakeFilter = false;
+    inputComplex = true;
 
     // Initialize provides port maxQueueDepth
     dataFloat_In->setMaxQueueDepth(1000);
@@ -90,7 +91,8 @@ void TuneFilterDecimate_i::configureTuner(const std::string& propid) {
         }
         TuningIF = InputRate * TuningNorm;
         if (InputRF != 0) {
-            TuningRF = TuningIF + InputRF;
+        	TuningRF = TuningIF - chan_if + InputRF;
+
         } else {
             TuningRF = 0;
         }
@@ -101,12 +103,12 @@ void TuneFilterDecimate_i::configureTuner(const std::string& propid) {
             TuningNorm = 0.0;
         }
         if (InputRF != 0) {
-            TuningRF = TuningIF + InputRF;
+            TuningRF = TuningIF - chan_if + InputRF;
         } else {
             TuningRF = 0;
         }
     } else if ((propid == "TuningRF") && (this->TuneMode == "RF")) {
-        TuningIF = TuningRF - InputRF;
+        TuningIF = TuningRF + chan_if - InputRF;
         if (InputRate > 0) {
             TuningNorm = (TuningIF / InputRate);
         } else {
@@ -181,10 +183,19 @@ int TuneFilterDecimate_i::serviceFunction()
 		return NOOP;
 	}
 
+	size_t iInc;
+	if(inputComplex)
+		iInc=2;
+	else
+		iInc=1;
+
 	// Process dataBuffer vector
-	for(size_t i=0; i < pkt->dataBuffer.size(); i+=2) { // dataBuffer must be even (and should be for complex data)
-		// Convert to the tunerInput complex data type
-		tunerInput[inputIndex++] = Complex(pkt->dataBuffer[i], pkt->dataBuffer[i+1]);
+	for(size_t i=0; i < pkt->dataBuffer.size(); i+=iInc) { // dataBuffer must be even (and should be for complex data)
+		if(inputComplex)
+			// Convert to the tunerInput complex data type
+			tunerInput[inputIndex++] = Complex(pkt->dataBuffer[i], pkt->dataBuffer[i+1]);
+		else
+			tunerInput[inputIndex++] = Complex(pkt->dataBuffer[i], 0);
 
 		if(inputIndex == BUFFER_LENGTH) {
 			inputIndex = 0; // Reset index
@@ -221,13 +232,21 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri)
    LOG_TRACE(TuneFilterDecimate_i, "Configuring SRI: "
                                     << "sri.xdelta = " << sri.xdelta
                                     << "sri.streamID = " << sri.streamID)
-
-	if (sri.mode!=1)
+    Real tmpInputSampleRate = 1 / sri.xdelta; // Calculate sample rate received from SRI
+	bool lastInputComplex = inputComplex;
+	if (sri.mode==1)
 	{
-	    LOG_WARN(TuneFilterDecimate_i, "Treating real data as if it were complex");
+		inputComplex=true;
+		chan_if =0.0; //center of band is 0 if we are complex
+	}
+	else
+	{
+		inputComplex = false;
+		chan_if = tmpInputSampleRate/4.0; //center of band is fs/4 if we are real
+		//output is always complex even if input is real
+		sri.mode=1;
 	}
 
-	Real tmpInputSampleRate = 1 / sri.xdelta; // Calculate sample rate received from SRI
 	DecimationFactor = floor(tmpInputSampleRate/DesiredOutputRate);
 	LOG_DEBUG(TuneFilterDecimate_i, "DecimationFactor = " << DecimationFactor);
 	if (DecimationFactor <1) {
@@ -271,6 +290,8 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri)
         }
         tmpInputRF = 0;
     }
+    bool inputComplexChanged = lastInputComplex ^ inputComplex;
+
     if (tmpInputRF != InputRF) {
         LOG_DEBUG(TuneFilterDecimate_i, "Input RF changed " << tmpInputRF);
         InputRF = tmpInputRF;
@@ -279,7 +300,13 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri)
         if (TuneMode == "RF") {
             configureTuner("TuningRF");
         }
-        TuningRF = InputRF + TuningIF;
+        TuningRF = InputRF + TuningIF - chan_if;
+        LOG_DEBUG(TuneFilterDecimate_i, "Tuning RF: " << TuningRF);
+    }
+    else if (TuneMode == "RF" && inputComplexChanged)
+    {
+    	//the RF didn't change but the IF is changing because we have switched between real and complex data
+        configureTuner("TuningRF");
         LOG_DEBUG(TuneFilterDecimate_i, "Tuning RF: " << TuningRF);
     }
 

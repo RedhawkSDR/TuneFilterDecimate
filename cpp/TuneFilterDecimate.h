@@ -116,10 +116,11 @@ class TuneFilterDecimate_i : public TuneFilterDecimate_base
         // Private variables
         Real inputSampleRate;
         Real outputSampleRate;
-        long chan_rf;
+        double chan_if;
         bool TuningRFChanged; // Used to indicate if TuningRF has been changed so the CHAN_RF keyword can be added to SRI
         bool RemakeFilter;    // Used to indicate we must redo the filter
         std::string streamID;
+        bool inputComplex;
 
 };
 
