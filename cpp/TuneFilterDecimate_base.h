@@ -22,6 +22,7 @@
 #include <ossie/Resource_impl.h>
 
 #include "bulkio/bulkio.h"
+#include "struct_props.h"
 
 #define NOOP 0
 #define FINISH -1
@@ -128,6 +129,8 @@ class TuneFilterDecimate_base : public Resource_impl
         double InputRF;
         double InputRate;
         CORBA::ULong DecimationFactor;
+        CORBA::ULong taps;
+        filterProps_struct filterProps;
 
         // Ports
         bulkio::InFloatPort *dataFloat_In;

@@ -21,10 +21,8 @@
 #include "TuneFilterDecimate_base.h"
 #include "DataTypes.h"
 #include "Tuner.h"
-#include "FIRFilter.h"
+#include "firfilter.h"
 #include "Decimate.h"
-
-#define BUFFER_LENGTH 8192 // Number of complex samples to be processed in one block
 
 class TuneFilterDecimate_i;
 
@@ -32,7 +30,7 @@ class TuneFilterDecimate_i : public TuneFilterDecimate_base
 {
     ENABLE_LOGGING
     public:
-        TuneFilterDecimate_i(const char *uuid, const char *label);
+	TuneFilterDecimate_i(const char *uuid, const char *label);
         ~TuneFilterDecimate_i();
         int serviceFunction();
 
@@ -40,7 +38,12 @@ class TuneFilterDecimate_i : public TuneFilterDecimate_base
 
     private:
         // Handle changes to the SRI
-        void configureTFD(BULKIO::StreamSRI &sri);
+        void configureTFD(BULKIO::StreamSRI &sri); 
+
+	// ** Functions to generate tap coefficients for a lowpass filter.
+	int generateTaps(const double& sFreq, const double& dOmega, const double& delta, Real fl = Real(0.5)); // returns # of taps
+	void kaiser(RealArray &w, Real beta);
+	Real in0(Real x);
 
         // Handle changes to tuner properties
         void configureFilter(const std::string& propid);
@@ -101,26 +104,34 @@ class TuneFilterDecimate_i : public TuneFilterDecimate_base
 
         // Processing classes
         Tuner *tuner;
-        FIRFilter *filter;
+        firfilter *filter;
         Decimate *decimate;
 
         // Internal buffers
-        ComplexArray tunerInput;
-        ComplexArray filterInput;
-        ComplexArray decimateInput;
-        ComplexVector decimateOutput;
-        std::vector<float> floatBuffer;
+        ComplexVector tunerInput;
+	ComplexVector decimateOutput;
+	std::vector<float> floatBuffer; // output buffer
 
-        size_t inputIndex; // For loading tunerInput
+	// Input buffers for the FIR filter are fed as output buffers to the Tuner object.
+	// Output buffers for the FIR filter are set as input buffers to the Decimate object.
+	firfilter::realVector f_realIn;
+	firfilter::complexVector f_complexIn;
+	firfilter::realVector f_realOut;
+	firfilter::complexVector f_complexOut;
+	// All of these are REQUIRED by firfilter's constructor, whether we are filtering real or complex data.
+	// DO NOT REMOVE.
+
+	RealFFTWVector filterCoeff; // To set the taps for the filter. Only real taps for current implementation.
 
         // Private variables
         Real inputSampleRate;
         Real outputSampleRate;
         double chan_if;
         bool TuningRFChanged; // Used to indicate if TuningRF has been changed so the CHAN_RF keyword can be added to SRI
-        bool RemakeFilter;    // Used to indicate we must redo the filter
+	bool RemakeFilter;    // Used to indicate we must redo the filter
         std::string streamID;
         bool inputComplex;
+	int FFT_size_int; // internal FFT size
 
 };
 

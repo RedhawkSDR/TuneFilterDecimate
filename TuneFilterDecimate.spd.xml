@@ -29,7 +29,8 @@ program.  If not, see http://www.gnu.org/licenses/.
     <localfile name="TuneFilterDecimate.scd.xml"/>
   </descriptor>
   <implementation id="cpp">
-    <description>The implementation contains descriptive information about the template for a software component.</description>
+    <description>The implementation contains descriptive information about
+			the template for a software component.</description>
     <code type="Executable">
       <localfile name="cpp/TuneFilterDecimate"/>
       <entrypoint>cpp/TuneFilterDecimate</entrypoint>
@@ -38,6 +39,12 @@ program.  If not, see http://www.gnu.org/licenses/.
     <programminglanguage name="C++"/>
     <humanlanguage name="EN"/>
     <os name="Linux"/>
+    <dependency type="runtime_requirements">
+      <softpkgref>
+        <localfile name="/components/fftlib/fftlib.spd.xml"/>
+        <implref refid="firstImplementation"/>
+      </softpkgref>
+    </dependency>
     <dependency type="runtime_requirements">
       <softpkgref>
         <localfile name="/components/dsp/dsp.spd.xml"/>

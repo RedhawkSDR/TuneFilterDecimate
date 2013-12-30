@@ -29,6 +29,10 @@ import time
 from ossie.cf import ExtendedCF
 from scipy import fftpack
 import random
+import matplotlib.pyplot
+import scipy
+
+enablePlotting = False
 
 def genSinWave(fs, freq, numPts, cx=True, startTime=0, amp=1):
     xd = 1.0/fs
@@ -61,7 +65,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         self.assertTrue(dR<1)
         self.assertTrue(dI<1)    
     
-    def setProps(self, TuningRF=None, FilterBW=None, DesiredOutputRate=None, TuneMode=None, TuningIF=None, TuningNorm=None):
+    def setProps(self, TuningRF=None, FilterBW=None, DesiredOutputRate=None, filterProps=None, TuneMode=None, TuningIF=None, TuningNorm=None):
         myProps=[]
         if TuningRF!=None:
             self.TuningRF = TuningRF
@@ -74,6 +78,13 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         if DesiredOutputRate!=None:
             self.DesiredOutputRate = DesiredOutputRate
             myProps.append(CF.DataType(id='DesiredOutputRate',value=CORBA.Any(CORBA.TC_float, self.DesiredOutputRate)))
+
+        if filterProps!=None:
+            self.filterProps = filterProps
+            myProps.append(CF.DataType(id='filterProps',value=CORBA.Any(CORBA.TypeCode("IDL:CF/Properties:1.0"),
+                [ossie.cf.CF.DataType(id='FFT_size', value=CORBA.Any(CORBA.TC_ulong, filterProps[0])),
+                ossie.cf.CF.DataType(id='TransitionWidth', value=CORBA.Any(CORBA.TC_double, filterProps[1])),
+                ossie.cf.CF.DataType(id='Ripple', value=CORBA.Any(CORBA.TC_double, filterProps[2]))])))
 
         if TuneMode!=None:
             self.TuneMode = TuneMode
@@ -308,7 +319,114 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         
         error = sum([abs(x-y) for x, y in zip(scaled, expectedSteadyState)])/len(steadyState)
         self.assertTrue(error<2)
-        
+    
+    def testSimpleResponse(self):
+       fs=20000
+       fsOut = fs#/10.0
+       self.setProps(TuneMode="IF", TuningIF=0,FilterBW=8000, DesiredOutputRate=fsOut)
+       self.doImpulseResponse(fs, cmplx=False)
+  
+    def doImpulseResponse(self, fs, cmplx=True):
+       sig = [1]
+       sig.extend([0]*(1024*1024-1))
+       out = self.main(sig,sampleRate=fs,complexData=cmplx)
+       print out[0:1000]
+       print "data size = ", len(out)
+       fftNum = 2**int(math.ceil(math.log(len(out), 2)))
+       freqResponse = [20*math.log(max(abs(x),1e-9),10) for x in scipy.fftpack.fftshift(scipy.fftpack.fft(out,fftNum))]
+       fsOut = 1.0/self.sink.sri().xdelta
+       print "output rate is %s" %fsOut
+       if enablePlotting:
+           freqAxis =  scipy.fftpack.fftshift(scipy.fftpack.fftfreq(fftNum,1.0/fsOut))
+           matplotlib.pyplot.plot(freqAxis, freqResponse)
+           matplotlib.pyplot.show()
+
+    def testLowTaps(self): # Test that the minimum of 25 taps is in place
+       fBW = 8000
+       inpRate = 5000
+       #normalFL = 1.6
+       delta = 0.1778
+       #A = 15
+       dw = 111.408
+       fs = 2500
+       #tw = 0.28
+       # M = 20, M-1 = 20
+
+       sig = genSinWave(inpRate, 1000, 1024*1024)
+       self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[128,dw,delta])
+       out = self.main(sig,inpRate);
+
+       props = self.comp.query([])
+       propDict = dict((x.id, any.from_any(x.value)) for x in props)
+       tapCount = propDict['taps']
+
+       self.assertTrue(tapCount == 25)
+       
+    def testCalcTapsA(self): # Test that the calculation for number of taps with actual stopband attenuation < 20.96 is correct
+       fBW = 8000
+       inpRate = 5000
+       #normalFL = 1.6
+       fft = 128
+       delta = 0.0562
+       #A = 25
+       dw = 90.320
+       fs = 2500
+       #tw = 0.227
+       # M = 33, M-1 = 32
+
+       sig = genSinWave(inpRate, 1000, 1024*1024)
+       self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[fft,dw,delta])
+       out = self.main(sig,inpRate);
+
+       props = self.comp.query([])
+       propDict = dict((x.id, any.from_any(x.value)) for x in props)
+       tapCount = propDict['taps']
+       self.assertTrue(tapCount == 32)
+
+
+    def testCalcTapsB(self): # Test that the calculation for number of taps withi stopband attenuation >= 20.96 is correct
+       fBW = 8000
+       inpRate = 5000
+       #normalFL = 1.6
+       fft = 128
+       delta = 0.1778
+       #A = 15
+       dw = 70.028
+       fs = 2500
+       #tw = 0.176
+       # M = 33, M-1 = 32
+
+       sig = genSinWave(inpRate, 1000, 1024*1024)
+       self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[fft,dw,delta])
+       out = self.main(sig,inpRate);
+
+       props = self.comp.query([])
+       propDict = dict((x.id, any.from_any(x.value)) for x in props)
+       tapCount = propDict['taps']
+
+       self.assertTrue(tapCount == 32)
+
+    def testHighTaps(self): # Test that the FFT_size/2 cap works 
+       fBW = 8000
+       inpRate = 5000
+       #normalFL = 1.6
+       fft = 128
+       delta = 0.1778
+       #A = 15
+       dw = 32.627
+       fs = 2500
+       #tw = 0.082
+       # M = 71, M-1 = 70
+
+       sig = genSinWave(inpRate, 1000, 1024*1024)
+       self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[fft,dw,delta])
+       out = self.main(sig,inpRate);
+
+       props = self.comp.query([])
+       propDict = dict((x.id, any.from_any(x.value)) for x in props)
+       tapCount = propDict['taps']
+       self.assertTrue(tapCount == fft/2)
+
     def main(self,inData, sampleRate, colRF=0.0, complexData = True):
         """The main engine for all the test cases - configure the equation, push data, and get output
            As applicable
@@ -335,7 +453,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         expectedDecimation = math.floor(sampleRate/self.DesiredOutputRate)
         expectedOutputRate = sampleRate/expectedDecimation
         self.assertAlmostEqual(expectedOutputRate,outputRate, places=2)
-        
+
         return toCx(out)
     
 if __name__ == "__main__":

@@ -75,4 +75,30 @@ program.  If not, see http://www.gnu.org/licenses/.
     <kind kindtype="configure"/>
     <action type="external"/>
   </simple>
+  <struct id="filterProps" mode="readwrite">
+    <simple id="FFT_size" type="ulong">
+      <description>Size of FFT in the FIR filter</description>
+      <value>128</value>
+    </simple>
+    <simple id="TransitionWidth" mode="readwrite" type="double">
+      <description>Desired transition region width</description>
+      <value>800</value>
+      <units>Hz</units>
+      <kind kindtype="configure"/>
+      <action type="external"/>
+    </simple>
+    <simple id="Ripple" mode="readwrite" type="double">
+      <description>Maximum bound on error in pass/stop bands</description>
+      <value>0.01</value>
+      <range max="1" min="0"/>
+      <kind kindtype="configure"/>
+      <action type="external"/>
+    </simple>
+    <configurationkind kindtype="configure"/>
+  </struct>
+  <simple id="taps" mode="readonly" type="ulong">
+    <description>Number of filter coefficients, a.k.a. taps</description>
+    <kind kindtype="configure"/>
+    <action type="external"/>
+  </simple>
 </properties>

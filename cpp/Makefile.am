@@ -15,13 +15,13 @@
 # You should have received a copy of the GNU Lesser General Public License along with this 
 # program.  If not, see http://www.gnu.org/licenses/.
 #
- 
+
 ossieName = TuneFilterDecimate
 bindir = $(prefix)/dom/components/TuneFilterDecimate/cpp/
 bin_PROGRAMS = TuneFilterDecimate
 
 xmldir = $(prefix)/dom/components/TuneFilterDecimate/
-dist_xml_DATA = ../TuneFilterDecimate.prf.xml ../TuneFilterDecimate.scd.xml ../TuneFilterDecimate.spd.xml
+dist_xml_DATA = ../TuneFilterDecimate.scd.xml ../TuneFilterDecimate.prf.xml ../TuneFilterDecimate.spd.xml
 
 distclean-local:
 	rm -f config.*
@@ -41,6 +41,6 @@ distclean-local:
 # you wish to manually control these options.
 include $(srcdir)/Makefile.am.ide
 TuneFilterDecimate_SOURCES = $(redhawk_SOURCES_auto)
-TuneFilterDecimate_CXXFLAGS = -Wall $(PROJECTDEPS_CFLAGS) $(BOOST_CPPFLAGS) $(INTERFACEDEPS_CFLAGS) $(redhawk_INCLUDES_auto) -I../../dsp/inc
-TuneFilterDecimate_LDADD = $(PROJECTDEPS_LIBS) $(BOOST_LDFLAGS) $(BOOST_THREAD_LIB) $(INTERFACEDEPS_LIBS) $(redhawk_LDADD_auto) -ldsp
-TuneFilterDecimate_LDFLAGS = -Wall $(redhawk_LDFLAGS_auto) -L../../dsp/Release
+TuneFilterDecimate_CXXFLAGS = -Wall $(PROJECTDEPS_CFLAGS) $(BOOST_CPPFLAGS) $(INTERFACEDEPS_CFLAGS) $(redhawk_INCLUDES_auto) -I../../dsp/inc -I../../fftlib/inc
+TuneFilterDecimate_LDADD = $(PROJECTDEPS_LIBS) $(BOOST_LDFLAGS) $(BOOST_THREAD_LIB) $(INTERFACEDEPS_LIBS) $(redhawk_LDADD_auto) -ldsp -lfftlib
+TuneFilterDecimate_LDFLAGS = -Wall $(redhawk_LDFLAGS_auto) -L../../dsp/Release -L../../fftlib/Release

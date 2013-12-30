@@ -62,6 +62,7 @@ void TuneFilterDecimate_base::start() throw (CORBA::SystemException, CF::Resourc
 {
     boost::mutex::scoped_lock lock(serviceThreadLock);
     if (serviceThread == 0) {
+        dataFloat_In->unblock();
         serviceThread = new ProcessThread<TuneFilterDecimate_base>(this, 0.1);
         serviceThread->start();
     }
@@ -206,6 +207,23 @@ void TuneFilterDecimate_base::loadProperties()
                 "DecimationFactor",
                 "",
                 "readonly",
+                "",
+                "external",
+                "configure");
+
+    addProperty(taps,
+                "taps",
+                "",
+                "readonly",
+                "",
+                "external",
+                "configure");
+
+    addProperty(filterProps,
+                filterProps_struct(),
+                "filterProps",
+                "",
+                "readwrite",
                 "",
                 "external",
                 "configure");

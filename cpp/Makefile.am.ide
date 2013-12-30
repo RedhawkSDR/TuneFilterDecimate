@@ -25,4 +25,5 @@ redhawk_SOURCES_auto += TuneFilterDecimate.h
 redhawk_SOURCES_auto += TuneFilterDecimate_base.cpp
 redhawk_SOURCES_auto += TuneFilterDecimate_base.h
 redhawk_SOURCES_auto += main.cpp
-redhawk_INCLUDES_auto = -I/home/vagrant/git/basic-components/dsp/inc
+redhawk_SOURCES_auto += struct_props.h
+redhawk_INCLUDES_auto = -I/home/aqy/basic-components/dsp/inc
