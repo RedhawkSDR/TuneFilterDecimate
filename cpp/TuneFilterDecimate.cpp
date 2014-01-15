@@ -26,6 +26,12 @@
 
 #include "TuneFilterDecimate.h"
 
+//set allowed bounds here for static members to make the compilers happy
+const size_t TuneFilterDecimate_i::MIN_NUM_TAPS= 25;
+const size_t TuneFilterDecimate_i::MAX_NUM_TAPS= 4*1024*1024;
+const size_t TuneFilterDecimate_i::MIN_FFT_SIZE= 64;
+const size_t TuneFilterDecimate_i::MAX_FFT_SIZE= 8*1024*1024;
+
 //find the power of 2 greater then or equal to the input number
 size_t pow2ge(size_t n)
 {

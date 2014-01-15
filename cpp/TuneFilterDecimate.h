@@ -131,11 +131,11 @@ private:
 	bool RemakeFilter;    // Used to indicate we must redo the filter
 	std::string streamID;
 	bool inputComplex;
-	//set limmits on parameters here
-	const static size_t MIN_NUM_TAPS= 25;
-	const static size_t MAX_NUM_TAPS= 4*1024*1024;
-	const static size_t MIN_FFT_SIZE= 64;
-	const static size_t MAX_FFT_SIZE= 8*1024*1024;
+	//values set in TuneFilterDecimate.cpp
+	const static size_t MIN_NUM_TAPS;
+	const static size_t MAX_NUM_TAPS;
+	const static size_t MIN_FFT_SIZE;
+	const static size_t MAX_FFT_SIZE;
 
 };
 
