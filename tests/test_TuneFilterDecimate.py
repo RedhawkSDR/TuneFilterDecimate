@@ -269,7 +269,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         """
         f= 800
         T=20000
-        self.setProps(TuningRF=f,FilterBW=500.0, DesiredOutputRate=5000.0)
+        self.setProps(TuningIF=f,FilterBW=500.0, DesiredOutputRate=5000.0, TuneMode="IF")
         delF = 2*math.pi*f/T 
         inputBBCX = []
         delta = .01 
@@ -372,7 +372,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        dw = 90.320
        fs = 2500
        #tw = 0.227
-       # M = 33, M-1 = 32
+       # M = 33, M+1 = 32
 
        sig = genSinWave(inpRate, 1000, 1024*1024)
        self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[fft,dw,delta])
@@ -381,7 +381,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        props = self.comp.query([])
        propDict = dict((x.id, any.from_any(x.value)) for x in props)
        tapCount = propDict['taps']
-       self.assertTrue(tapCount == 32)
+       self.assertTrue(tapCount == 34)
 
 
     def testCalcTapsB(self): # Test that the calculation for number of taps withi stopband attenuation >= 20.96 is correct
@@ -394,7 +394,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        dw = 70.028
        fs = 2500
        #tw = 0.176
-       # M = 33, M-1 = 32
+       # M = 33, M+1 = 32
 
        sig = genSinWave(inpRate, 1000, 1024*1024)
        self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[fft,dw,delta])
@@ -404,7 +404,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        propDict = dict((x.id, any.from_any(x.value)) for x in props)
        tapCount = propDict['taps']
 
-       self.assertTrue(tapCount == 32)
+       self.assertTrue(tapCount == 34)
 
     def testHighTaps(self): # Test that the FFT_size/2 cap works 
        fBW = 8000
@@ -416,7 +416,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        dw = 32.627
        fs = 2500
        #tw = 0.082
-       # M = 71, M-1 = 70
+       # M = 71, M+1 = 72
 
        sig = genSinWave(inpRate, 1000, 1024*1024)
        self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[fft,dw,delta])
@@ -425,7 +425,10 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        props = self.comp.query([])
        propDict = dict((x.id, any.from_any(x.value)) for x in props)
        tapCount = propDict['taps']
-       self.assertTrue(tapCount == fft/2)
+       filterPropDict = dict((x['id'], x['value']) for x in propDict['filterProps'])
+       self.assertTrue(tapCount <= filterPropDict['FFT_size']/2)
+       #make sure 2* taps is the closest power of two
+       self.assertTrue(2**math.ceil(math.log(tapCount*2,2.0))== filterPropDict['FFT_size'])
 
     def main(self,inData, sampleRate, colRF=0.0, complexData = True):
         """The main engine for all the test cases - configure the equation, push data, and get output

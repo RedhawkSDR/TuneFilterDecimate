@@ -26,13 +26,22 @@
 
 #include "TuneFilterDecimate.h"
 
+//find the power of 2 greater then or equal to the input number
+size_t pow2ge(size_t n)
+{
+	size_t out=2;
+	while (n>out)
+		out*=2;
+	return out;
+};
+
 PREPARE_LOGGING(TuneFilterDecimate_i)
 
 TuneFilterDecimate_i::TuneFilterDecimate_i(const char *uuid, const char *label) :
 TuneFilterDecimate_base(uuid, label)
 {
 	LOG_TRACE(TuneFilterDecimate_i, "TuneFilterDecimate() constructor entry");
-	
+
 	// Initialize processing classes
 	tuner = NULL;
 	filter = NULL;
@@ -75,10 +84,10 @@ void TuneFilterDecimate_i::configureTuner(const std::string& propid) {
 	if ((propid == "TuningNorm")  && (this->TuneMode == "NORM")) {
 		if (TuningNorm < -0.5) {
 			LOG_WARN(TuneFilterDecimate_i, "Tuning norm less than 0.0; adjusting to minimum.")
-					TuningNorm = -0.5;
+							TuningNorm = -0.5;
 		} else if (TuningNorm > 0.5) {
 			LOG_WARN(TuneFilterDecimate_i, "Tuning greater than 1.0; adjusting to maximum.")
-					TuningNorm = 0.5;
+							TuningNorm = 0.5;
 		}
 		TuningIF = InputRate * TuningNorm;
 		if (InputRF != 0) {
@@ -106,7 +115,7 @@ void TuneFilterDecimate_i::configureTuner(const std::string& propid) {
 		}
 	}
 
-LOG_DEBUG(TuneFilterDecimate_i, "Tuner Settings"
+	LOG_DEBUG(TuneFilterDecimate_i, "Tuner Settings"
 			<< " Norm: " << TuningNorm
 			<< " IF: " << TuningIF
 			<< " RF: " << TuningRF);
@@ -198,11 +207,11 @@ int TuneFilterDecimate_i::serviceFunction() {
 	filter->newComplexData(); // Tuner always outputs complex data in current implementation.
 
 	size_t buffLen_1 = f_complexOut.size(); // Size the rest of the buffers according to the filtered data.
-	decimateOutput.reserve(buffLen_1);
-	floatBuffer.reserve(buffLen_1);
+	decimateOutput.reserve((buffLen_1+DecimationFactor-1)/DecimationFactor);
 
 	// Run Decimation: fills up decimateOutput vector
 	if(decimate->run()) {
+		floatBuffer.reserve(decimateOutput.size());
 		// Buffer is full, so place the data into the floatBuffer
 		for(size_t j=0; j< decimateOutput.size(); j++) {
 			floatBuffer.push_back(decimateOutput[j].real());
@@ -224,7 +233,7 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 	LOG_TRACE(TuneFilterDecimate_i, "Configuring SRI: "
 			<< "sri.xdelta = " << sri.xdelta
 			<< "sri.streamID = " << sri.streamID)
-			Real tmpInputSampleRate = 1 / sri.xdelta; // Calculate sample rate received from SRI
+					Real tmpInputSampleRate = 1 / sri.xdelta; // Calculate sample rate received from SRI
 	bool lastInputComplex = inputComplex;
 	if (sri.mode==1)
 	{
@@ -243,7 +252,7 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 	LOG_DEBUG(TuneFilterDecimate_i, "DecimationFactor = " << DecimationFactor);
 	if (DecimationFactor <1) {
 		LOG_WARN(TuneFilterDecimate_i, "Decimation less than 1, setting to minimum")
-				DecimationFactor=1;
+						DecimationFactor=1;
 	}
 
 	bool sampleRateChanged =(InputRate != tmpInputSampleRate);
@@ -340,21 +349,24 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 				<< " InputRate " << InputRate
 				<< " FilterNorm " << normFl);
 
-		// Minimum FFT_size implemented
-		FFT_size_int = filterProps.FFT_size;
-		if(FFT_size_int < 64) {
-			LOG_DEBUG(TuneFilterDecimate_i, "FFT_size too small, set to 64");
-			filterProps.FFT_size = 64;
-			FFT_size_int = 64;
-		}
-		
-		filter = new firfilter(FFT_size_int, f_realIn, f_complexIn, f_realOut, f_complexOut);
 		// We generate our FIR filter taps here. The read-only property 'taps' is set.
 		// 	- Output sampling rate is 1.0/xdelta divided by the decimation factor.
 		// 		** sri.xdelta was already modified according to the output sampling rate above.
 		// 	- We use the transition width and ripple specified by the user to create the filter taps.
 		// 	- Normalized lowpass cutoff frequency is the only one we need; upper cutoff removed.
 		taps = generateTaps((1.0/sri.xdelta),filterProps.TransitionWidth,filterProps.Ripple,normFl);
+
+		// Minimum FFT_size implemented
+		size_t minFftSize = std::max(MIN_FFT_SIZE, pow2ge(2*taps));
+		if(filterProps.FFT_size < minFftSize) {
+			LOG_DEBUG(TuneFilterDecimate_i, "FFT_size too small, set to " << minFftSize);
+			filterProps.FFT_size = minFftSize;
+		} else if (filterProps.FFT_size > MAX_FFT_SIZE)
+		{
+			LOG_DEBUG(TuneFilterDecimate_i, "FFT_size too large, set to " << MAX_FFT_SIZE);
+			filterProps.FFT_size = MAX_FFT_SIZE;
+		}
+		filter = new firfilter(filterProps.FFT_size, f_realIn, f_complexIn, f_realOut, f_complexOut);
 		filter->setTaps(filterCoeff);
 		decimate = new Decimate(f_complexOut, decimateOutput, DecimationFactor);
 		RemakeFilter = false;	
@@ -375,17 +387,17 @@ int TuneFilterDecimate_i::generateTaps(const double& sFreq, const double& dOmega
 	double atten = -20.0*log10(delta); // actual stopband attenuation
 	double tw = 2.0*M_PI*dOmega/sFreq;
 	int M; // filter order
-	
+
 	if(atten >= 20.96)
 		M = ceil((atten-7.95)/(2.285*tw));
 	else // if(atten < 20.96)
 		M = ceil(5.79/tw);
 
-	size_t t = M-1; // M-1 = number of taps
-	if(t < 25) // 25 is the minimum tap count
-		t = 25;
-	if(t > filterProps.FFT_size/2.0) // FFT_size/2 is the max for the number of taps
-		t = filterProps.FFT_size/2.0;
+	size_t t = M+1; // M+1 = number of taps
+	if(t < MIN_NUM_TAPS) // 25 is the minimum tap count
+		t = MIN_NUM_TAPS;
+	else if(t > MAX_NUM_TAPS) // maximium allowed number of taps
+		t = MAX_NUM_TAPS;
 	filterCoeff.resize(t);
 
 	size_t ieo, nh;
@@ -428,11 +440,11 @@ int TuneFilterDecimate_i::generateTaps(const double& sFreq, const double& dOmega
 		beta = Real(0);
 	}
 	kaiser (winCoef, beta); // builds the window weights
-	
+
 	for(size_t j=0; j < filterCoeff.size(); j++) {
 		filterCoeff[j] *= winCoef[j]; // applies the Kaiser window weights
 	}
-	
+
 	return t;
 }
 
@@ -449,7 +461,7 @@ void TuneFilterDecimate_i::kaiser(RealArray &w, Real beta) {
 			xi += 0.5;
 		size_t jj = n + ii - ieo;
 		w[n - 1 - ii] =
-			w[jj] = in0 (beta * sqrt(1.0 - 4.0 * xi * xi / xind)) / bes;
+				w[jj] = in0 (beta * sqrt(1.0 - 4.0 * xi * xi / xind)) / bes;
 	}
 }
 
