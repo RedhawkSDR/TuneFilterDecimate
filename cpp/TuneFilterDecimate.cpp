@@ -349,8 +349,14 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 			delete filter;
 			delete decimate;
 		}
+		//The cut-off frequency is 1/2 of the filter bandwidth
+		//since we are generating a low pass filter at D.C
+		//frequencies are passed from -fc to fc, so the bandwidth is 2*fc  or
+		//the cutoff frequency is bw/2
+		Real FL = FilterBW / 2.0;
 
-		Real normFl = FilterBW / InputRate; // Fixed normalized LPF cutoff frequency.
+		//Normalize the frquency to be divided by the input sample rate - valid range is from 0 to .5
+		Real normFl = FL / InputRate; // Fixed normalized LPF cutoff frequency.
 		LOG_DEBUG(TuneFilterDecimate_i, "FilterBW " << FilterBW
 				<< " InputRate " << InputRate
 				<< " FilterNorm " << normFl);
@@ -386,6 +392,7 @@ int TuneFilterDecimate_i::generateTaps(const double& sFreq, const double& dOmega
 	// 	- sFreq: the output sampling frequency
 	//	- dOmega: the desired transition region width
 	//	- delta: ripple, or the maximum bound on error in the pass and stop bands
+	//  - fl:    the "normalized" cutoff frequency (valid range from 0 to .5)
 	// Output:
 	// 	- t: returns the number of taps generated
 	// ** Based off of information found at: http://www.labbookpages.co.uk/audio/firWindowing.html#kaiser

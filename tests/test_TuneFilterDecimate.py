@@ -250,11 +250,28 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         sri = self.sink.sri() 
         steadyState = out[100:]
         fftNum = 4096
-        f = fftpack.fft(steadyState,fftNum)
-        fDb = [20*math.log10(abs(x)) for x in f]
-        freqs = fftpack.fftfreq(fftNum,self.sink.sri().xdelta)
-        passBand = [y for x,y in zip(freqs,fDb) if abs(x) <=fBW]
-        stopBand = [y for x,y in zip(freqs,fDb) if abs(x) >1.5*fBW]
+        numAvgs = min(len(steadyState)/fftNum, 20)
+        print "numAvgs", numAvgs
+        #take multiple ffts and sum them together to get a better picture of the filtering shape involved
+        fSum = None
+        #have an overlap of half the fft size
+        shift = fftNum/2
+        for i in xrange(numAvgs):
+            f = scipy.fftpack.fftshift(fftpack.fft(steadyState[i*shift:],fftNum))
+            fDb = [20*math.log10(abs(x)) for x in f]
+            if fSum:
+                fSum = [x+ y for x, y in zip(fSum,fDb)]
+            else:
+                fSum = fDb
+        freqs = scipy.fftpack.fftshift(fftpack.fftfreq(fftNum,self.sink.sri().xdelta))
+        fCutoff = fBW/2.0
+        print "fCutoff = %s" %fCutoff
+        passBand = [y for x,y in zip(freqs,fSum) if abs(x) <=fCutoff]
+        stopBand = [y for x,y in zip(freqs,fSum) if abs(x) >1.5*fCutoff]
+
+        if enablePlotting:
+            matplotlib.pyplot.plot(freqs, fSum)
+            matplotlib.pyplot.show()
         
         minPB = min(passBand)
         maxPB = max(passBand)
@@ -325,21 +342,46 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        fsOut = fs#/10.0
        self.setProps(TuneMode="IF", TuningIF=0,FilterBW=8000, DesiredOutputRate=fsOut)
        self.doImpulseResponse(fs, cmplx=False)
+
+    def testSimpleResponseCx(self):
+       fs=20000
+       fsOut = fs#/10.0
+       self.setProps(TuneMode="IF", TuningIF=0,FilterBW=8000, DesiredOutputRate=fsOut)
+       self.doImpulseResponse(fs, cmplx=True)
   
     def doImpulseResponse(self, fs, cmplx=True):
-       sig = [1]
-       sig.extend([0]*(1024*1024-1))
-       out = self.main(sig,sampleRate=fs,complexData=cmplx)
-       print out[0:1000]
-       print "data size = ", len(out)
-       fftNum = 2**int(math.ceil(math.log(len(out), 2)))
-       freqResponse = [20*math.log(max(abs(x),1e-9),10) for x in scipy.fftpack.fftshift(scipy.fftpack.fft(out,fftNum))]
-       fsOut = 1.0/self.sink.sri().xdelta
-       print "output rate is %s" %fsOut
-       if enablePlotting:
-           freqAxis =  scipy.fftpack.fftshift(scipy.fftpack.fftfreq(fftNum,1.0/fsOut))
-           matplotlib.pyplot.plot(freqAxis, freqResponse)
-           matplotlib.pyplot.show()
+        print "doImpulseResponse, cx = ", cmplx
+        sig = [1]
+        sig.extend([0]*(1024*1024-1))
+        out = self.main(sig,sampleRate=fs,complexData=cmplx)
+        print out[0:1000]
+        print "data size = ", len(out)
+        fftNum = 2**int(math.ceil(math.log(len(out), 2)))
+        freqResponse = [20*math.log(max(abs(x),1e-9),10) for x in scipy.fftpack.fftshift(scipy.fftpack.fft(out,fftNum))]
+        fsOut = 1.0/self.sink.sri().xdelta
+        print "output rate is %s" %fsOut
+        freqAxis =  scipy.fftpack.fftshift(scipy.fftpack.fftfreq(fftNum,1.0/fsOut))
+        oldVal=-100
+        threshold=-20
+        fl=None
+        fu=None
+        for i, val in enumerate(freqResponse):
+            if oldVal<threshold and val > threshold:
+                fl = freqAxis[i]
+            if oldVal>threshold and val <threshold:
+                fu = freqAxis[i-1]
+                measuredBW = fu-fl
+                assert(measuredBW > self.comp.FilterBW)
+                measuredCF = fu+fl
+                assert(abs(measuredCF)<100)
+                print "measuredBW = %s" %measuredBW
+                print "measuredCF = %s" %measuredCF
+                break               
+            oldVal = val
+        assert(fu!=None)
+        if enablePlotting:
+            matplotlib.pyplot.plot(freqAxis, freqResponse)
+            matplotlib.pyplot.show()
 
     def testLowTaps(self): # Test that the minimum of 25 taps is in place
        fBW = 8000
