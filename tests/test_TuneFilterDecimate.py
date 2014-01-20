@@ -430,6 +430,41 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        #make sure 2* taps is the closest power of two
        self.assertTrue(2**math.ceil(math.log(tapCount*2,2.0))== filterPropDict['FFT_size'])
 
+    def testManyConfigure(self):
+        """Configure the filter settings over and over again in a tight loop to ensure the class can handle
+           the "angry operator" scinaro in which user constantly changes the settings
+        """
+        fs = 10000
+        freq = 3000
+        colRF = 100e3
+        tuneRf = colRF+freq-fs/4.0
+        self.setProps(TuningRF=int(tuneRf),FilterBW=200.0, DesiredOutputRate=1000.0)
+        sig = genSinWave(fs, freq, 1024*1024, cx=False)
+
+        count=0
+        fft=2048
+        dw=32.627
+        delta=0.1778
+        fBW=fs/10
+        fftSelections=[2**i for i in xrange(0,31)]
+        
+        while count<1000:
+            self.src.push(sig,
+                      complexData = False,
+                      sampleRate=fs,
+                      SRIKeywords = [sb.io_helpers.SRIKeyword('COL_RF',colRF, 'long')])
+            try:
+                self.setProps(filterProps=[random.choice(fftSelections),dw,delta])
+            except Exception, e:
+                print "\n\n!!!!!!you got an exception", e
+                print "\n\n"
+                print "count = ", count
+                break
+            count +=1
+            time.sleep(.001)
+            
+
+
     def main(self,inData, sampleRate, colRF=0.0, complexData = True):
         """The main engine for all the test cases - configure the equation, push data, and get output
            As applicable

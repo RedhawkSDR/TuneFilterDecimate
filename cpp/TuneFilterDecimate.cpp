@@ -372,8 +372,7 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 			LOG_DEBUG(TuneFilterDecimate_i, "FFT_size too large, set to " << MAX_FFT_SIZE);
 			filterProps.FFT_size = MAX_FFT_SIZE;
 		}
-		filter = new firfilter(filterProps.FFT_size, f_realIn, f_complexIn, f_realOut, f_complexOut);
-		filter->setTaps(filterCoeff);
+		filter = new firfilter(filterProps.FFT_size, f_realIn, f_complexIn, f_realOut, f_complexOut, filterCoeff);
 		decimate = new Decimate(f_complexOut, decimateOutput, DecimationFactor);
 		RemakeFilter = false;	
 	}
