@@ -230,6 +230,12 @@ int TuneFilterDecimate_i::serviceFunction() {
 		floatBuffer.clear();
 	}
 
+	if (pkt->EOS) {
+		LOG_DEBUG(TuneFilterDecimate_i, "Received EOS for stream: '" << pkt->streamID << "'");
+		streamID = ""; // Reset streamID on EOS to allow processing of new stream
+		RemakeFilter = true; // Ensure filter is remade on next received packet
+	}
+
 	delete pkt; // Must delete the dataTransfer object when no longer needed
 
 	return NORMAL;
