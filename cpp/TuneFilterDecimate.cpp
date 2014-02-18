@@ -362,17 +362,25 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 		Real FL = FilterBW / 2.0;
 
 		//Normalize the frquency to be divided by the input sample rate - valid range is from 0 to .5
-		Real normFl = FL / InputRate; // Fixed normalized LPF cutoff frequency.
+		//Real normFl = FL / InputRate; // Fixed normalized LPF cutoff frequency.
 		LOG_DEBUG(TuneFilterDecimate_i, "FilterBW " << FilterBW
 				<< " InputRate " << InputRate
-				<< " FilterNorm " << normFl);
+				<< " FL " << FL);
 
 		// We generate our FIR filter taps here. The read-only property 'taps' is set.
 		// 	- Output sampling rate is 1.0/xdelta divided by the decimation factor.
 		// 		** sri.xdelta was already modified according to the output sampling rate above.
 		// 	- We use the transition width and ripple specified by the user to create the filter taps.
 		// 	- Normalized lowpass cutoff frequency is the only one we need; upper cutoff removed.
-		taps = generateTaps((1.0/sri.xdelta),filterProps.TransitionWidth,filterProps.Ripple,normFl);
+		//taps = generateTaps((1.0/sri.xdelta),filterProps.TransitionWidth,filterProps.Ripple,normFl);
+
+		RealVector tmpVec;
+		taps = filterdesigner_.wdfirHz(tmpVec, FIRFilter::lowpass, filterProps.Ripple, filterProps.TransitionWidth,
+				FL, 0, (1.0/sri.xdelta), MIN_NUM_TAPS, MAX_NUM_TAPS);
+		filterCoeff.clear();
+		filterCoeff.reserve(tmpVec.size());
+		for (RealVector::iterator i = tmpVec.begin(); i!=tmpVec.end(); i++)
+			filterCoeff.push_back(*i);
 
 		// Minimum FFT_size implemented
 		size_t minFftSize = std::max(MIN_FFT_SIZE, pow2ge(2*taps));
