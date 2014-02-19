@@ -22,7 +22,6 @@
 #include "DataTypes.h"
 #include "Tuner.h"
 #include "firfilter.h"
-#include "FirFilterDesigner.h"
 #include "Decimate.h"
 
 class TuneFilterDecimate_i;
@@ -137,7 +136,7 @@ private:
 	const static size_t MAX_NUM_TAPS;
 	const static size_t MIN_FFT_SIZE;
 	const static size_t MAX_FFT_SIZE;
-    FirFilterDesigner filterdesigner_;
+
 };
 
 #endif
