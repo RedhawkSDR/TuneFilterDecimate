@@ -355,28 +355,43 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 			delete filter;
 			delete decimate;
 		}
-		//The cut-off frequency is 1/2 of the filter bandwidth
-		//since we are generating a low pass filter at D.C
-		//frequencies are passed from -fc to fc, so the bandwidth is 2*fc  or
-		//the cutoff frequency is bw/2
+/*
+ *                    ASCII ART to explain the filter design
+ *
+ *  Lowpass (Real filter)
+ *  ---------|
+ *           \
+ *            \
+ *             \
+ *              |
+ *  ----------------------------------
+ *  0        FL FL+tw   fsOut/2   fsIn/2
+ *
+ *  The basic gist is we tune first, then filter.
+ *  Then we filter
+ *  Then we decimate
+ *
+ *  This means the filter is a LOWPASS filter which must be designed given the INPUT sampling frequency
+ *  Whose transition frequency happens at 1/2 the requested tune bandwidth.  Thus FL = FilterBW / 2.0;
+ *  We need the transition region to "finish" by fsOut/2 to avoid aliasing.  So we do a check for that too
+ *
+ */
 		Real FL = FilterBW / 2.0;
 
-		//Normalize the frquency to be divided by the input sample rate - valid range is from 0 to .5
-		//Real normFl = FL / InputRate; // Fixed normalized LPF cutoff frequency.
-		LOG_DEBUG(TuneFilterDecimate_i, "FilterBW " << FilterBW
-				<< " InputRate " << InputRate
-				<< " FL " << FL);
+		//calculate the transition frequency necessary to avoid aliasing
+		Real maxTW = (outputSampleRate/2.0)-FL;
+		if (maxTW > 0 && maxTW <  filterProps.TransitionWidth)
+		{
+			LOG_WARN(TuneFilterDecimate_i, "input transition width "<< filterProps.TransitionWidth<<"  too large - replacing with "<< maxTW);
+			filterProps.TransitionWidth = maxTW;
+		}
 
 		// We generate our FIR filter taps here. The read-only property 'taps' is set.
-		// 	- Output sampling rate is 1.0/xdelta divided by the decimation factor.
-		// 		** sri.xdelta was already modified according to the output sampling rate above.
 		// 	- We use the transition width and ripple specified by the user to create the filter taps.
-		// 	- Normalized lowpass cutoff frequency is the only one we need; upper cutoff removed.
-		//taps = generateTaps((1.0/sri.xdelta),filterProps.TransitionWidth,filterProps.Ripple,normFl);
-
+		// 	- Normalized lowpass cutoff frequency is the only one we need; upper cutoff not used
 		RealVector tmpVec;
 		taps = filterdesigner_.wdfirHz(tmpVec, FIRFilter::lowpass, filterProps.Ripple, filterProps.TransitionWidth,
-				FL, 0, (1.0/sri.xdelta), MIN_NUM_TAPS, MAX_NUM_TAPS);
+				FL, 0, InputRate, MIN_NUM_TAPS, MAX_NUM_TAPS);
 		filterCoeff.clear();
 		filterCoeff.reserve(tmpVec.size());
 		for (RealVector::iterator i = tmpVec.begin(); i!=tmpVec.end(); i++)
@@ -399,115 +414,3 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 
 	LOG_TRACE(TuneFilterDecimate_i, "Exit configureSRI()");
 }
-
-int TuneFilterDecimate_i::generateTaps(const double& sFreq, const double& dOmega, const double& delta, Real fl) {
-	// This function implements the Kaiser window filter design method as a function of:
-	// Parameters:
-	// 	- sFreq: the output sampling frequency
-	//	- dOmega: the desired transition region width
-	//	- delta: ripple, or the maximum bound on error in the pass and stop bands
-	//  - fl:    the "normalized" cutoff frequency (valid range from 0 to .5)
-	// Output:
-	// 	- t: returns the number of taps generated
-	// ** Based off of information found at: http://www.labbookpages.co.uk/audio/firWindowing.html#kaiser
-	double atten = -20.0*log10(delta); // actual stopband attenuation
-	double tw = 2.0*M_PI*dOmega/sFreq;
-	int M; // filter order
-
-	if(atten >= 20.96)
-		M = ceil((atten-7.95)/(2.285*tw));
-	else // if(atten < 20.96)
-		M = ceil(5.79/tw);
-
-	size_t t = M+1; // M+1 = number of taps
-	if(t < MIN_NUM_TAPS) // 25 is the minimum tap count
-		t = MIN_NUM_TAPS;
-	else if(t > MAX_NUM_TAPS) // maximium allowed number of taps
-		t = MAX_NUM_TAPS;
-	filterCoeff.resize(t);
-
-	size_t ieo, nh;
-	Real c, c1, c3, xn, beta;
-	ieo = filterCoeff.size() % 2;
-
-	// Window coefficients
-	const size_t sz = filterCoeff.size();
-	RealArray winCoef(sz);
-
-	// Constructs the initial filter, based on a sinc function ( sin(x)/x ).
-	// We choose to only compute half of the array, since sinc is an even function => we reflect the data.
-	c1 = fl;
-	nh = (1 + sz) / 2;
-	if (ieo == 1)
-		filterCoeff[nh - 1] = 2.0 * c1;
-
-	for (size_t ii = ieo; ii < nh; ii++) {
-		xn = ii;
-		if (ieo == 0)
-			xn += 0.5;
-
-		c = M_PI * xn;
-		c3 = c * c1 * 2.0;
-
-		size_t jj = nh + ii - ieo;
-		filterCoeff[jj] = sin (c3) / c;
-		filterCoeff[nh - ii - 1] = filterCoeff[jj];
-	}
-
-	// Calculates the value of parameter beta based on actual stopband attenuation.
-	if (atten > 50.0) {
-		beta = 0.1102 * (atten - 8.7);
-	}
-	else if (atten >= 20.96 && atten <= 50.0) {
-		Real tmp = atten - 20.96;
-		beta = 0.58417 * pow (tmp, Real(0.4)) + 0.07886 * tmp;
-	}
-	else { // if (atten < 20.96)
-		beta = Real(0);
-	}
-	kaiser (winCoef, beta); // builds the window weights
-
-	for(size_t j=0; j < filterCoeff.size(); j++) {
-		filterCoeff[j] *= winCoef[j]; // applies the Kaiser window weights
-	}
-
-	return t;
-}
-
-void TuneFilterDecimate_i::kaiser(RealArray &w, Real beta) {
-	// Based on values for beta, this function constructs actual window weights with the Kaiser window equation.
-	// Makes use of the 0th order Bessel function.
-	size_t n = (1 + w.size()) / 2, ieo = w.size() % 2;
-	Real bes = in0 (beta);
-	Real xind = pow ((w.size() - 1.0), 2);
-
-	for (size_t ii = 0; ii < n; ii++) {
-		Real xi = ii;
-		if (ieo == 0)
-			xi += 0.5;
-		size_t jj = n + ii - ieo;
-		w[n - 1 - ii] =
-				w[jj] = in0 (beta * sqrt(1.0 - 4.0 * xi * xi / xind)) / bes;
-	}
-}
-
-Real TuneFilterDecimate_i::in0(Real x) {
-	// Implements the Taylor expansion of a 0th order Bessel function (I0)
-	// 	- I0(x) = Sum[(x/2)^(2i)/(i!)^2 , {i, 0, Infinity}]
-	// 		= 1 + (x/2)^2/(1!)^2 + (x/2)^4/(2!)^2 + (x/2)^6/(3!)^2 + ..
-	// Because the denominator becomes quickly large, we only need calculate I0 up to around x = 25.
-	const Real t = 1.0e-7;
-	Real e = 1, de = 1;
-	Real y = 0.5 * x;
-	Real xi, sde;
-
-	for (size_t ii = 1; ii < 25; ++ii) {
-		xi = ii;
-		de *= y / xi;
-		sde = de * de;
-		e += sde;
-		if (e * t - sde > Real(0))
-			return e;
-	}
-	return e;
-} 

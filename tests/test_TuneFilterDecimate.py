@@ -384,12 +384,12 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
             matplotlib.pyplot.show()
 
     def testLowTaps(self): # Test that the minimum of 25 taps is in place
-       fBW = 8000
+       fBW = 2000
        inpRate = 5000
        #normalFL = 1.6
        delta = 0.1778
        #A = 15
-       dw = 111.408
+       dw = 222.816
        fs = 2500
        #tw = 0.28
        # M = 20, M-1 = 20
@@ -405,13 +405,13 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        self.assertTrue(tapCount == 25)
        
     def testCalcTapsA(self): # Test that the calculation for number of taps with actual stopband attenuation < 20.96 is correct
-       fBW = 8000
+       fBW = 2000
        inpRate = 5000
        #normalFL = 1.6
        fft = 128
        delta = 0.0562
        #A = 25
-       dw = 90.320
+       dw = 180.64
        fs = 2500
        #tw = 0.227
        # M = 33, M+1 = 32
@@ -427,13 +427,13 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
 
 
     def testCalcTapsB(self): # Test that the calculation for number of taps withi stopband attenuation >= 20.96 is correct
-       fBW = 8000
+       fBW = 2000
        inpRate = 5000
        #normalFL = 1.6
        fft = 128
        delta = 0.1778
        #A = 15
-       dw = 70.028
+       dw = 140.056
        fs = 2500
        #tw = 0.176
        # M = 33, M+1 = 32
@@ -449,13 +449,13 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        self.assertTrue(tapCount == 34)
 
     def testHighTaps(self): # Test that the FFT_size/2 cap works 
-       fBW = 8000
+       fBW = 2000
        inpRate = 5000
        #normalFL = 1.6
        fft = 128
        delta = 0.1778
        #A = 15
-       dw = 32.627
+       dw = 65.254
        fs = 2500
        #tw = 0.082
        # M = 71, M+1 = 72
