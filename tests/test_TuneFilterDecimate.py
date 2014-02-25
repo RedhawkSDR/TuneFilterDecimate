@@ -23,6 +23,7 @@ from omniORB import any
 from ossie.cf import CF
 from omniORB import CORBA
 from ossie.utils import sb
+from ossie.properties import props_to_dict
 from ossie.utils.sb import domainless
 import math
 import time
@@ -348,37 +349,50 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        fsOut = fs#/10.0
        self.setProps(TuneMode="IF", TuningIF=0,FilterBW=8000, DesiredOutputRate=fsOut)
        self.doImpulseResponse(fs, cmplx=True)
-  
+
+    def getFilterProps(self):
+        """ get the filter properties from the component
+        """
+        props = self.comp.query([])
+        d = props_to_dict(props)
+        return d['filterProps']
+      
     def doImpulseResponse(self, fs, cmplx=True):
         print "doImpulseResponse, cx = ", cmplx
         sig = [1]
         sig.extend([0]*(1024*1024-1))
         out = self.main(sig,sampleRate=fs,complexData=cmplx)
-        print out[0:1000]
-        print "data size = ", len(out)
-        fftNum = 2**int(math.ceil(math.log(len(out), 2)))
+        filtLen = int(self.comp.taps)
+        fftNum = 2**int(math.ceil(math.log(filtLen, 2))+1)
         freqResponse = [20*math.log(max(abs(x),1e-9),10) for x in scipy.fftpack.fftshift(scipy.fftpack.fft(out,fftNum))]
         fsOut = 1.0/self.sink.sri().xdelta
-        print "output rate is %s" %fsOut
         freqAxis =  scipy.fftpack.fftshift(scipy.fftpack.fftfreq(fftNum,1.0/fsOut))
-        oldVal=-100
-        threshold=-20
-        fl=None
-        fu=None
-        for i, val in enumerate(freqResponse):
-            if oldVal<threshold and val > threshold:
-                fl = freqAxis[i]
-            if oldVal>threshold and val <threshold:
-                fu = freqAxis[i-1]
-                measuredBW = fu-fl
-                assert(measuredBW > self.comp.FilterBW)
-                measuredCF = fu+fl
-                assert(abs(measuredCF)<100)
-                print "measuredBW = %s" %measuredBW
-                print "measuredCF = %s" %measuredCF
-                break               
-            oldVal = val
-        assert(fu!=None)
+        
+        filterProps= self.getFilterProps()       
+        stopThreshold = 20*math.log(filterProps['Ripple'],10)
+        plusPassThreshold = 20*math.log(1+filterProps['Ripple'],10)
+        minusPassThreshold = 20*math.log(1-filterProps['Ripple'],10)
+        delta = filterProps['TransitionWidth']
+        
+        f1 = self.comp.FilterBW/2.0
+        passband = [(-f1+delta, f1-delta)]
+        stopband = [(-fs/2.0,-f1-delta), (f1+delta, fs/2.0)]
+        
+        for freq, val in zip(freqAxis, freqResponse):
+            inPassband = False
+            for fmin, fmax in passband:
+                if fmin<=freq<=fmax:
+                    #print "pb, freq = ", freq, "val = ", val, "abs(val) = ", abs(val), "threshold = ", minusPassThreshold, plusPassThreshold
+                    self.assertTrue(minusPassThreshold<val<plusPassThreshold)
+                    inPassband = True
+                    break
+            if not inPassband:
+                for fmin, fmax in stopband:
+                    if fmin<=freq<=fmax:
+                        #print "sb, freq = ", freq, "val = ", val, "threshold = ", stopThreshold
+                        self.assertTrue(val<stopThreshold)
+                        break
+        
         if enablePlotting:
             matplotlib.pyplot.plot(freqAxis, freqResponse)
             matplotlib.pyplot.show()
