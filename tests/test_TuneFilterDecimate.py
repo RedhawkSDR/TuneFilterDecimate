@@ -428,7 +428,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        dw = 180.64
        fs = 2500
        #tw = 0.227
-       # M = 33, M+1 = 32
+       # M = 33, M+1 = 34
 
        sig = genSinWave(inpRate, 1000, 1024*1024)
        self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[fft,dw,delta])
@@ -450,7 +450,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
        dw = 140.056
        fs = 2500
        #tw = 0.176
-       # M = 33, M+1 = 32
+       # M = 33, M+1 = 34
 
        sig = genSinWave(inpRate, 1000, 1024*1024)
        self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[fft,dw,delta])
