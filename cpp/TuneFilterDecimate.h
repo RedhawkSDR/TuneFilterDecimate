@@ -64,8 +64,23 @@ private:
 		for(unsigned int i=0; i < sri.keywords.length(); i++) {
 			if(!strcmp(sri.keywords[i].id, id)) {
 				valid = true;
-				sri.keywords[i].value >>= value;
-				break;
+				if (sri.keywords[i].value >>= value)
+					break;
+				//try with double and float to extract it and see if we can make it happen if the
+				//format of this keyword is different then we expect
+				double d;
+				if (sri.keywords[i].value >>= d)
+				{
+					value=static_cast<TYPE>(d);
+					break;
+				}
+				float f;
+				if (sri.keywords[i].value >>= f)
+				{
+					value=static_cast<TYPE>(f);
+					break;
+				}
+				valid = false;
 			}
 		}
 		return value;

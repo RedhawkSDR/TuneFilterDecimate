@@ -35,6 +35,8 @@ import scipy
 
 enablePlotting = False
 
+DEBUG_MODE = False
+
 def genSinWave(fs, freq, numPts, cx=True, startTime=0, amp=1):
     xd = 1.0/fs
     phase =  2*math.pi*startTime
@@ -142,6 +144,8 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         # Launch the component with the default execparams
         execparams = self.getPropertySet(kinds=("execparam",), modes=("readwrite", "writeonly"), includeNil=False)
         execparams = dict([(x.id, any.from_any(x.value)) for x in execparams])
+        if DEBUG_MODE:
+            execparams["DEBUG_LEVEL"] = 4
         self.launch(execparams)
         
         #######################################################################
@@ -518,19 +522,92 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
                 break
             count +=1
             time.sleep(.001)
-            
 
+    def testIFReal(self):
+        self.tuneModeTest("IF", False)
 
-    def main(self,inData, sampleRate, colRF=0.0, complexData = True):
+    def testIFComplex(self):
+        self.tuneModeTest("IF", True)
+
+    def testNormReal(self):
+        self.tuneModeTest("NORM", False)
+
+    def testNormComplex(self):
+        self.tuneModeTest("NORM", True)
+
+    def testRfReal(self):
+        self.tuneModeTest("RF", False)
+
+    def testRfComplex(self):
+        self.tuneModeTest("RF", True)
+
+    def testRfRealTwo(self):
+        self.tuneModeTest("RF", False,'double')
+
+    def testRfComplexTwo(self):
+        self.tuneModeTest("RF", True, 'double')
+
+    def testRfRealThree(self):
+        self.tuneModeTest("RF", False,'float')
+
+    def testRfComplexThree(self):
+        self.tuneModeTest("RF", True, 'float')
+
+    def tuneModeTest(self,tuneMode, cmplx=False, colRfType='long'):
+        inpRate = 1e6
+        colRf= 1e9
+        sig = genSinWave(inpRate, 1000, 1024*1024)
+        
+        self.setProps(DesiredOutputRate=inpRate)
+        
+        if cmplx:
+            cfIF = 0.0
+        else:
+            cfIF = inpRate / 4.0
+
+        tuneIF = inpRate/8.0
+        tuneRF = tuneIF - cfIF + colRf
+        tuneNorm = float(tuneIF)/inpRate
+        
+        self.comp.TuneMode = tuneMode
+        if tuneMode== "NORM":
+            self.comp.TuningNorm = tuneNorm
+            self.assertEqual(tuneNorm, self.comp.TuningNorm)
+        elif tuneMode== "IF":
+            print "set IF value"
+            self.comp.TuningIF = tuneIF
+            self.assertEqual(self.comp.TuningIF, tuneIF)
+            print "IF value set"
+        elif tuneMode== "RF":
+            self.comp.TuningRF = tuneRF
+            self.assertEqual(self.comp.TuningRF, tuneRF)
+        else:
+            raise RuntimeError("invalid tune mode")
+        
+        out = self.main(sig,inpRate, colRF=colRf, complexData=cmplx, colRfType=colRfType)
+
+        if DEBUG_MODE:
+            self.comp.api()
+
+        self.assertEqual(tuneMode, self.comp.TuneMode)
+        self.assertEqual(inpRate, self.comp.InputRate)
+        self.assertEqual(colRf, self.comp.InputRF)
+
+        self.assertEqual(tuneIF, self.comp.TuningIF)
+        self.assertEqual(tuneRF, self.comp.TuningRF)
+        self.assertEqual(tuneNorm, self.comp.TuningNorm)
+
+    def main(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='long'):
         """The main engine for all the test cases - configure the equation, push data, and get output
            As applicable
         """
         #data processing is asynchronos - so wait until the data is all processed
         count=0
+        keywords = [sb.io_helpers.SRIKeyword('COL_RF',colRF, colRfType)]
         self.src.push(inData,
                       complexData = complexData, 
                       sampleRate=sampleRate,
-                      SRIKeywords = [sb.io_helpers.SRIKeyword('COL_RF',colRF, 'long')])
+                      SRIKeywords = keywords)
         out=[]
         while True:
             newOut = self.sink.getData()

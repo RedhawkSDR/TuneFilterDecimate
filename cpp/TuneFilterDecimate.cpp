@@ -122,6 +122,10 @@ void TuneFilterDecimate_i::configureTuner(const std::string& propid) {
 	}
 
 	LOG_DEBUG(TuneFilterDecimate_i, "Tuner Settings"
+			<< " mode: " << this->TuneMode
+			<< " propid: "<< propid
+			<< " InputRate: "<<InputRate
+			<< " InputRF: "<<InputRF
 			<< " Norm: " << TuningNorm
 			<< " IF: " << TuningIF
 			<< " RF: " << TuningRF);
