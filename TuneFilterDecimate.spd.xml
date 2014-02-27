@@ -22,6 +22,7 @@ program.  If not, see http://www.gnu.org/licenses/.
   <author>
     <name>null</name>
   </author>
+  <description>This component selects a narrowband cut from an input signal.   Tuning, filtering and decimation are used to remove noise and interfierence in other frequency bands and reduce the sampling rate for more efficient downstream processing.</description>
   <propertyfile type="PRF">
     <localfile name="TuneFilterDecimate.prf.xml"/>
   </propertyfile>
