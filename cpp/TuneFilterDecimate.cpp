@@ -158,6 +158,12 @@ int TuneFilterDecimate_i::serviceFunction() {
 	bulkio::InFloatPort::dataTransfer *pkt = dataFloat_In->getPacket(0.0); // non-blocking
 	if(pkt == NULL) return NOOP;
 
+	if(pkt->inputQueueFlushed)
+	{
+		LOG_WARN(TuneFilterDecimate_i, "Input queue has been flushed.  Data has been lost");
+		RemakeFilter = true; // flush filter
+	}
+
 	if (streamID!=pkt->streamID)
 	{
 		if (streamID=="")
@@ -178,8 +184,6 @@ int TuneFilterDecimate_i::serviceFunction() {
 		dataFloat_Out->pushSRI(pkt->SRI); // Push the new SRI to the next component
 		TuningRFChanged = false;
 	}
-	if(pkt->inputQueueFlushed)
-		LOG_WARN(TuneFilterDecimate_i, "Input queue has been flushed.  Data has been lost");
 
 	if ((tuner == NULL) || (filter == NULL) || (decimate == NULL)) {
 		LOG_TRACE(TuneFilterDecimate_i, "TFD cannot complete work, dropping data");
