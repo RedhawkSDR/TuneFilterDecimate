@@ -67,7 +67,7 @@ private:
 				if (sri.keywords[i].value >>= value)
 					break;
 				//try with double and float to extract it and see if we can make it happen if the
-				//format of this keyword is different then we expect
+				//format of this keyword is different than we expect
 				double d;
 				if (sri.keywords[i].value >>= d)
 				{

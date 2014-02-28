@@ -239,7 +239,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         self.verifyConst(out)            
  
     def testOutputBW(self):
-        """Send white noise threw the system and verify the fitler BW is appropriate
+        """Send white noise through the system and verify the fitler BW is appropriate
         """
         fBW= 2000.0
         T=10000

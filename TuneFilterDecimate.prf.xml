@@ -20,9 +20,9 @@ program.  If not, see http://www.gnu.org/licenses/.
 <properties>
   <simple id="TuneMode" mode="readwrite" type="string">
     <description>This property determines which of the properties is used for setting the signal input frequency.  
-NORM chorosponds to the TuningNorm property.
-IF chorosponds to the TuningIF property.
-RF chorosponds to the TuningIF property.
+NORM corresponds to the TuningNorm property.
+IF corresponds to the TuningIF property.
+RF corresponds to the TuningRF property.
 
 Here are the relationships between these values:
 
@@ -42,14 +42,14 @@ TuningRF = TuningIF - chan_if + InputRF
   </simple>
   <simple id="TuningNorm" mode="readwrite" type="double">
     <description>Display the tune frequency in normalized units.
-TuneNorm is the tuneIF/sampleing Frequency</description>
+TuneNorm is the tuneIF/sampling frequency</description>
     <value>0.0</value>
     <range max="0.5" min="-0.5"/>
     <kind kindtype="configure"/>
     <action type="external"/>
   </simple>
   <simple id="TuningIF" mode="readwrite" type="double">
-    <description>This is the tune frequncy in terms of the IF frequency range.  </description>
+    <description>This is the tune frequncy in terms of the IF frequency range.</description>
     <value>0</value>
     <units>Hz</units>
     <kind kindtype="configure"/>
@@ -63,7 +63,7 @@ TuneNorm is the tuneIF/sampleing Frequency</description>
     <action type="external"/>
   </simple>
   <simple id="FilterBW" mode="readwrite" type="float">
-    <description>Filter bandwidth to the signal of interest.  This should be less than the DesiredOutputRate but greater then the bandwidth of the signal of interest</description>
+    <description>Filter bandwidth to apply.  This should be less than the DesiredOutputRate but greater then the bandwidth of the signal of interest</description>
     <value>8000</value>
     <units>Hz</units>
     <kind kindtype="configure"/>
@@ -77,7 +77,7 @@ TuneNorm is the tuneIF/sampleing Frequency</description>
     <action type="external"/>
   </simple>
   <simple id="InputRF" mode="readonly" type="double">
-    <description>The RF associated with this signal.  This is set by the keywords in the SRI.  IF CHAN_IF is present its value takes presidence.  Otherwise COL_IF is used if present.  If neither is present then this value is invalid and RF TuneMode is disabled.</description>
+    <description>The RF associated with this signal.  This is set by the keywords in the SRI.  If CHAN_IF is present its value takes precedence.  Otherwise COL_IF is used if present.  If neither is present then this value is invalid and RF TuneMode is disabled.</description>
     <value>0.0</value>
     <units>Hz</units>
     <kind kindtype="configure"/>
@@ -102,7 +102,7 @@ TuneNorm is the tuneIF/sampleing Frequency</description>
       <value>128</value>
     </simple>
     <simple id="TransitionWidth" mode="readwrite" type="double">
-      <description>Desired transition region width.  Lower TransitionWidth requires more filter taps (and more compuation) but gets a better frequency response.</description>
+      <description>Desired transition region width.  Lower TransitionWidth requires more filter taps (and more computation) but gets a better frequency response.</description>
       <value>800</value>
       <units>Hz</units>
       <kind kindtype="configure"/>

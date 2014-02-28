@@ -379,9 +379,9 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
  *  Then we filter
  *  Then we decimate
  *
- *  This means the filter is a LOWPASS filter which must be designed given the INPUT sampling frequency
- *  Whose transition frequency happens at 1/2 the requested tune bandwidth.  Thus FL = FilterBW / 2.0;
- *  We need the transition region to "finish" by fsOut/2 to avoid aliasing.  So we do a check for that too
+ *  This means the filter is a LOWPASS filter which must be designed given the INPUT sampling frequency.
+ *  The transition frequency happens at 1/2 the requested tune bandwidth.  Thus FL = FilterBW / 2.0.
+ *  We need the transition region to "finish" by fsOut/2 to avoid aliasing, so we do a check for that too.
  *
  */
 		Real FL = FilterBW / 2.0;
