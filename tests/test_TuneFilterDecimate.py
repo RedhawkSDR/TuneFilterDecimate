@@ -30,10 +30,11 @@ import time
 from ossie.cf import ExtendedCF
 from scipy import fftpack
 import random
-import matplotlib.pyplot
-import scipy
 
 enablePlotting = False
+if enablePlotting:
+    import matplotlib.pyplot
+import scipy
 
 DEBUG_MODE = False
 
