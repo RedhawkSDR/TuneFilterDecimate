@@ -509,6 +509,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         fBW=fs/10
         fftSelections=[2**i for i in xrange(0,31)]
         
+        startTime= time.time()
         while count<1000:
             self.src.push(sig,
                       complexData = False,
@@ -520,8 +521,10 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
                 print "\n\n!!!!!!you got an exception", e
                 print "\n\n"
                 print "count = ", count
-                break
+                raise e
             count +=1
+            if time.time()-startTime > 60.0:
+                break
             time.sleep(.001)
 
     def testIFReal(self):
