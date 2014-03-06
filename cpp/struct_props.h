@@ -1,3 +1,20 @@
+/*
+ * This file is protected by Copyright. Please refer to the COPYRIGHT file distributed with this
+ * source distribution.
+ *
+ * This file is part of REDHAWK Basic Components TuneFilterDecimate.
+ *
+ * REDHAWK Basic Components TuneFilterDecimate is free software: you can redistribute it and/or modify it under the terms of
+ * the GNU Lesser General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * REDHAWK Basic Components TuneFilterDecimate is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License along with this
+ * program.  If not, see http://www.gnu.org/licenses/.
+ */
 #ifndef STRUCTPROPS_H
 #define STRUCTPROPS_H
 
@@ -6,9 +23,7 @@
     AUTO-GENERATED CODE. DO NOT MODIFY
 
 *******************************************************************************************/
-
 #include <ossie/CorbaUtils.h>
-#include <ossie/PropertyInterface.h>
 
 struct filterProps_struct {
     filterProps_struct ()
@@ -35,10 +50,10 @@ inline bool operator>>= (const CORBA::Any& a, filterProps_struct& s) {
         if (!strcmp("FFT_size", props[idx].id)) {
             if (!(props[idx].value >>= s.FFT_size)) return false;
         }
-        if (!strcmp("TransitionWidth", props[idx].id)) {
+        else if (!strcmp("TransitionWidth", props[idx].id)) {
             if (!(props[idx].value >>= s.TransitionWidth)) return false;
         }
-        if (!strcmp("Ripple", props[idx].id)) {
+        else if (!strcmp("Ripple", props[idx].id)) {
             if (!(props[idx].value >>= s.Ripple)) return false;
         }
     }
@@ -70,26 +85,6 @@ inline bool operator== (const filterProps_struct& s1, const filterProps_struct& 
 inline bool operator!= (const filterProps_struct& s1, const filterProps_struct& s2) {
     return !(s1==s2);
 };
-
-template<> inline short StructProperty<filterProps_struct>::compare (const CORBA::Any& a) {
-    if (super::isNil_) {
-        if (a.type()->kind() == (CORBA::tk_null)) {
-            return 0;
-        }
-        return 1;
-    }
-
-    filterProps_struct tmp;
-    if (fromAny(a, tmp)) {
-        if (tmp != this->value_) {
-            return 1;
-        }
-
-        return 0;
-    } else {
-        return 1;
-    }
-}
 
 
 #endif
