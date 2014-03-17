@@ -130,7 +130,6 @@ private:
 
 	// Input buffers for the FIR filter are fed as output buffers to the Tuner object.
 	// Output buffers for the FIR filter are set as input buffers to the Decimate object.
-	firfilter::realVector f_realIn;
 	firfilter::complexVector f_complexIn;
 	firfilter::realVector f_realOut;
 	firfilter::complexVector f_complexOut;

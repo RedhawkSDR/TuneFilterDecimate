@@ -218,7 +218,7 @@ int TuneFilterDecimate_i::serviceFunction() {
 	tuner->run();
 
 	// Run Filter: fills up f_<type>Out vector
-	filter->newComplexData(); // Tuner always outputs complex data in current implementation.
+	filter->newComplexData(f_complexIn); // Tuner always outputs complex data in current implementation.
 
 	size_t buffLen_1 = f_complexOut.size(); // Size the rest of the buffers according to the filtered data.
 	decimateOutput.reserve((buffLen_1+DecimationFactor-1)/DecimationFactor);
@@ -415,7 +415,7 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 			LOG_DEBUG(TuneFilterDecimate_i, "FFT_size too large, set to " << MAX_FFT_SIZE);
 			filterProps.FFT_size = MAX_FFT_SIZE;
 		}
-		filter = new firfilter(filterProps.FFT_size, f_realIn, f_complexIn, f_realOut, f_complexOut, filterCoeff);
+		filter = new firfilter(filterProps.FFT_size, f_realOut, f_complexOut, filterCoeff);
 		decimate = new Decimate(f_complexOut, decimateOutput, DecimationFactor);
 		RemakeFilter = false;	
 	}
