@@ -41,6 +41,6 @@ distclean-local:
 # you wish to manually control these options.
 include $(srcdir)/Makefile.am.ide
 TuneFilterDecimate_SOURCES = $(redhawk_SOURCES_auto)
-TuneFilterDecimate_CXXFLAGS = -Wall $(PROJECTDEPS_CFLAGS) $(BOOST_CPPFLAGS) $(INTERFACEDEPS_CFLAGS) $(redhawk_INCLUDES_auto) -I../../dsp/inc -I../../fftlib/inc
-TuneFilterDecimate_LDADD = $(PROJECTDEPS_LIBS) $(BOOST_LDFLAGS) $(BOOST_THREAD_LIB) $(BOOST_SYSTEM_LIB) $(INTERFACEDEPS_LIBS) $(redhawk_LDADD_auto) -ldsp -lfftlib
-TuneFilterDecimate_LDFLAGS = -Wall $(redhawk_LDFLAGS_auto) -L../../dsp/Release -L../../fftlib/Release
+TuneFilterDecimate_CXXFLAGS = -Wall $(PROJECTDEPS_CFLAGS) $(BOOST_CPPFLAGS) $(INTERFACEDEPS_CFLAGS) $(redhawk_INCLUDES_auto)
+TuneFilterDecimate_LDADD = $(PROJECTDEPS_LIBS) $(BOOST_LDFLAGS) $(BOOST_THREAD_LIB) $(BOOST_SYSTEM_LIB) $(INTERFACEDEPS_LIBS) $(redhawk_LDADD_auto)
+TuneFilterDecimate_LDFLAGS = -Wall $(redhawk_LDFLAGS_auto)
