@@ -55,19 +55,19 @@ TuneFilterDecimate_base(uuid, label)
 
 	// Initialize private variables
 	chan_if = 0;
-	TuningRFChanged = false;
+	tuningRFChanged = false;
 	RemakeFilter = false;
 	inputComplex = true;
 
 	// Initialize provides port maxQueueDepth
 	dataFloat_In->setMaxQueueDepth(1000);
 
-	setPropertyChangeListener(static_cast<std::string>("TuningRF"), this, &TuneFilterDecimate_i::configureTuner);
-	setPropertyChangeListener(static_cast<std::string>("TuningIF"), this, &TuneFilterDecimate_i::configureTuner);
-	setPropertyChangeListener(static_cast<std::string>("TuningNorm"), this, &TuneFilterDecimate_i::configureTuner);
-	setPropertyChangeListener(static_cast<std::string>("FilterBW"), this, &TuneFilterDecimate_i::configureFilter);
-	setPropertyChangeListener(static_cast<std::string>("DesiredOutputRate"), this, &TuneFilterDecimate_i::configureFilter);
-	setPropertyChangeListener(static_cast<std::string>("filterProps"), this, &TuneFilterDecimate_i::configureFilter);
+	addPropertyChangeListener("TuningNorm", this, &TuneFilterDecimate_i::TuningNormChanged); //configureTuner
+	addPropertyChangeListener("TuningIF", this, &TuneFilterDecimate_i::TuningIFChanged); //configureTuner
+	addPropertyChangeListener("TuningRF", this, &TuneFilterDecimate_i::TuningRFChanged); //configureTuner
+	addPropertyChangeListener("FilterBW", this, &TuneFilterDecimate_i::FilterBWChanged); //configureFilter
+	addPropertyChangeListener("DesiredOutputRate", this, &TuneFilterDecimate_i::DesiredOutputRateChanged); //configureFilter
+	addPropertyChangeListener("filterProps", this, &TuneFilterDecimate_i::filterPropsChanged); //configureFilter
 }
 
 TuneFilterDecimate_i::~TuneFilterDecimate_i()
@@ -80,12 +80,82 @@ TuneFilterDecimate_i::~TuneFilterDecimate_i()
 		delete decimate;
 }
 
-void TuneFilterDecimate_i::configureFilter(const std::string& propid) {
+void TuneFilterDecimate_i::TuningNormChanged(const double *oldValue, const double *newValue)
+{
+	if (*oldValue != *newValue) {
+		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
+		TuningNorm = *newValue;
+		configureTuner("TuningNorm");
+	}
+}
+
+void TuneFilterDecimate_i::TuningIFChanged(const double *oldValue, const double *newValue)
+{
+	if (*oldValue != *newValue) {
+		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
+		TuningIF = *newValue;
+		configureTuner("TuningIF");
+	}
+}
+
+void TuneFilterDecimate_i::TuningRFChanged(const unsigned long long *oldValue, const unsigned long long *newValue)
+{
+	if (*oldValue != *newValue) {
+		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
+		TuningRF = *newValue;
+		configureTuner("TuningRF");
+	}
+}
+
+void TuneFilterDecimate_i::FilterBWChanged(const float *oldValue, const float *newValue)
+{
+	if (*oldValue != *newValue) {
+		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
+		FilterBW = *newValue;
+		configureFilter("FilterBW");
+	}
+}
+
+void TuneFilterDecimate_i::DesiredOutputRateChanged(const float *oldValue, const float *newValue)
+{
+	if (*oldValue != *newValue) {
+		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
+		DesiredOutputRate = *newValue;
+		configureFilter("DesiredOutputRate");
+	}
+}
+
+void TuneFilterDecimate_i::filterPropsChanged(const filterProps_struct *oldValue, const filterProps_struct *newValue)
+{
+	bool changed = false;
+	boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
+
+	if (oldValue->FFT_size != newValue->FFT_size) {
+		filterProps.FFT_size = newValue->FFT_size;
+		changed = true;
+	}
+
+	if (oldValue->Ripple != newValue->Ripple) {
+		filterProps.Ripple = newValue->Ripple;
+		changed = true;
+	}
+
+	if (oldValue->TransitionWidth != newValue->TransitionWidth) {
+		filterProps.TransitionWidth = newValue->TransitionWidth;
+		changed = true;
+	}
+
+	if (changed) {
+		configureFilter("filterProps");
+	}
+}
+
+void TuneFilterDecimate_i::configureFilter(const std::string &propid) {
 	LOG_DEBUG(TuneFilterDecimate_i, "Triggering filter remake");
 	RemakeFilter = true;
 }
 
-void TuneFilterDecimate_i::configureTuner(const std::string& propid) {
+void TuneFilterDecimate_i::configureTuner(const std::string &propid) {
 
 	if ((propid == "TuningNorm")  && (this->TuneMode == "NORM")) {
 		if (TuningNorm < -0.5) {
@@ -133,7 +203,7 @@ void TuneFilterDecimate_i::configureTuner(const std::string& propid) {
 	if (tuner != NULL) {
 		LOG_DEBUG(TuneFilterDecimate_i, "Retuning Tuner");
 		tuner->retune(TuningNorm);
-		TuningRFChanged = true;
+		tuningRFChanged = true;
 	} else {
 		LOG_DEBUG(TuneFilterDecimate_i, "Skipping tuner configuration because SRI hasn't been received");
 	}
@@ -178,11 +248,11 @@ int TuneFilterDecimate_i::serviceFunction() {
 	}
 
 	// Check if SRI has been changed
-	if(pkt->sriChanged || RemakeFilter || TuningRFChanged || (dataFloat_Out->getCurrentSRI().count(pkt->streamID)==0)) {
+	if(pkt->sriChanged || RemakeFilter || tuningRFChanged || (dataFloat_Out->getCurrentSRI().count(pkt->streamID)==0)) {
 		LOG_DEBUG(TuneFilterDecimate_i, "Reconfiguring TFD");
 		configureTFD(pkt->SRI); // Process and/or update the SRI
 		dataFloat_Out->pushSRI(pkt->SRI); // Push the new SRI to the next component
-		TuningRFChanged = false;
+		tuningRFChanged = false;
 	}
 
 	if ((tuner == NULL) || (filter == NULL) || (decimate == NULL)) {

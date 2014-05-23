@@ -142,7 +142,7 @@ private:
 	Real inputSampleRate;
 	Real outputSampleRate;
 	double chan_if;
-	bool TuningRFChanged; // Used to indicate if TuningRF has been changed so the CHAN_RF keyword can be added to SRI
+	bool tuningRFChanged; // Used to indicate if TuningRF has been changed so the CHAN_RF keyword can be added to SRI
 	bool RemakeFilter;    // Used to indicate we must redo the filter
 	std::string streamID;
 	bool inputComplex;
@@ -152,6 +152,16 @@ private:
 	const static size_t MIN_FFT_SIZE;
 	const static size_t MAX_FFT_SIZE;
     FirFilterDesigner filterdesigner_;
+
+    // Property Change Listener Callbacks
+    void TuningNormChanged(const double *oldValue, const double *newValue);
+    void TuningIFChanged(const double *oldValue, const double *newValue);
+    void TuningRFChanged(const unsigned long long *oldValue, const unsigned long long *newValue);
+    void FilterBWChanged(const float *oldValue, const float *newValue);
+    void DesiredOutputRateChanged(const float *oldValue, const float *newValue);
+    void filterPropsChanged(const filterProps_struct *oldValue, const filterProps_struct *newValue);
+
+    boost::mutex TuneFilterDecimateLock_;
 };
 
 #endif
