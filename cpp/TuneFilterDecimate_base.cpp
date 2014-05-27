@@ -29,85 +29,40 @@
 
 TuneFilterDecimate_base::TuneFilterDecimate_base(const char *uuid, const char *label) :
     Resource_impl(uuid, label),
-    serviceThread(0)
+    ThreadedComponent()
 {
-    construct();
+    loadProperties();
+
+    dataFloat_In = new bulkio::InFloatPort("dataFloat_In");
+    addPort("dataFloat_In", dataFloat_In);
+    dataFloat_Out = new bulkio::OutFloatPort("dataFloat_Out");
+    addPort("dataFloat_Out", dataFloat_Out);
 }
 
-void TuneFilterDecimate_base::construct()
+TuneFilterDecimate_base::~TuneFilterDecimate_base()
 {
-    Resource_impl::_started = false;
-    loadProperties();
-    serviceThread = 0;
-    
-    PortableServer::ObjectId_var oid;
-    dataFloat_In = new bulkio::InFloatPort("dataFloat_In");
-    oid = ossie::corba::RootPOA()->activate_object(dataFloat_In);
-    dataFloat_Out = new bulkio::OutFloatPort("dataFloat_Out");
-    oid = ossie::corba::RootPOA()->activate_object(dataFloat_Out);
-
-    registerInPort(dataFloat_In);
-    registerOutPort(dataFloat_Out, dataFloat_Out->_this());
+    delete dataFloat_In;
+    dataFloat_In = 0;
+    delete dataFloat_Out;
+    dataFloat_Out = 0;
 }
 
 /*******************************************************************************************
     Framework-level functions
     These functions are generally called by the framework to perform housekeeping.
 *******************************************************************************************/
-void TuneFilterDecimate_base::initialize() throw (CF::LifeCycle::InitializeError, CORBA::SystemException)
-{
-}
-
 void TuneFilterDecimate_base::start() throw (CORBA::SystemException, CF::Resource::StartError)
 {
-    boost::mutex::scoped_lock lock(serviceThreadLock);
-    if (serviceThread == 0) {
-        dataFloat_In->unblock();
-        serviceThread = new ProcessThread<TuneFilterDecimate_base>(this, 0.1);
-        serviceThread->start();
-    }
-    
-    if (!Resource_impl::started()) {
-    	Resource_impl::start();
-    }
+    Resource_impl::start();
+    ThreadedComponent::startThread();
 }
 
 void TuneFilterDecimate_base::stop() throw (CORBA::SystemException, CF::Resource::StopError)
 {
-    boost::mutex::scoped_lock lock(serviceThreadLock);
-    // release the child thread (if it exists)
-    if (serviceThread != 0) {
-        dataFloat_In->block();
-        if (!serviceThread->release(2)) {
-            throw CF::Resource::StopError(CF::CF_NOTSET, "Processing thread did not die");
-        }
-        serviceThread = 0;
+    Resource_impl::stop();
+    if (!ThreadedComponent::stopThread()) {
+        throw CF::Resource::StopError(CF::CF_NOTSET, "Processing thread did not die");
     }
-    
-    if (Resource_impl::started()) {
-    	Resource_impl::stop();
-    }
-}
-
-CORBA::Object_ptr TuneFilterDecimate_base::getPort(const char* _id) throw (CORBA::SystemException, CF::PortSupplier::UnknownPort)
-{
-
-    std::map<std::string, Port_Provides_base_impl *>::iterator p_in = inPorts.find(std::string(_id));
-    if (p_in != inPorts.end()) {
-        if (!strcmp(_id,"dataFloat_In")) {
-            bulkio::InFloatPort *ptr = dynamic_cast<bulkio::InFloatPort *>(p_in->second);
-            if (ptr) {
-                return ptr->_this();
-            }
-        }
-    }
-
-    std::map<std::string, CF::Port_var>::iterator p_out = outPorts_var.find(std::string(_id));
-    if (p_out != outPorts_var.end()) {
-        return CF::Port::_duplicate(p_out->second);
-    }
-
-    throw (CF::PortSupplier::UnknownPort());
 }
 
 void TuneFilterDecimate_base::releaseObject() throw (CORBA::SystemException, CF::LifeCycle::ReleaseError)
@@ -118,13 +73,6 @@ void TuneFilterDecimate_base::releaseObject() throw (CORBA::SystemException, CF:
     } catch (CF::Resource::StopError& ex) {
         // TODO - this should probably be logged instead of ignored
     }
-
-    // deactivate ports
-    releaseInPorts();
-    releaseOutPorts();
-
-    delete(dataFloat_In);
-    delete(dataFloat_Out);
 
     Resource_impl::releaseObject();
 }
@@ -159,7 +107,7 @@ void TuneFilterDecimate_base::loadProperties()
                 "configure");
 
     addProperty(TuningRF,
-                0,
+                0LL,
                 "TuningRF",
                 "",
                 "readwrite",
@@ -229,3 +177,5 @@ void TuneFilterDecimate_base::loadProperties()
                 "configure");
 
 }
+
+

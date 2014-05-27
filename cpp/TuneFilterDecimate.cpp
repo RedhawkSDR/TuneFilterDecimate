@@ -84,7 +84,6 @@ void TuneFilterDecimate_i::TuningNormChanged(const double *oldValue, const doubl
 {
 	if (*oldValue != *newValue) {
 		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
-		TuningNorm = *newValue;
 		configureTuner("TuningNorm");
 	}
 }
@@ -93,7 +92,6 @@ void TuneFilterDecimate_i::TuningIFChanged(const double *oldValue, const double 
 {
 	if (*oldValue != *newValue) {
 		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
-		TuningIF = *newValue;
 		configureTuner("TuningIF");
 	}
 }
@@ -102,7 +100,6 @@ void TuneFilterDecimate_i::TuningRFChanged(const unsigned long long *oldValue, c
 {
 	if (*oldValue != *newValue) {
 		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
-		TuningRF = *newValue;
 		configureTuner("TuningRF");
 	}
 }
@@ -111,7 +108,6 @@ void TuneFilterDecimate_i::FilterBWChanged(const float *oldValue, const float *n
 {
 	if (*oldValue != *newValue) {
 		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
-		FilterBW = *newValue;
 		configureFilter("FilterBW");
 	}
 }
@@ -120,7 +116,6 @@ void TuneFilterDecimate_i::DesiredOutputRateChanged(const float *oldValue, const
 {
 	if (*oldValue != *newValue) {
 		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
-		DesiredOutputRate = *newValue;
 		configureFilter("DesiredOutputRate");
 	}
 }
@@ -284,28 +279,32 @@ int TuneFilterDecimate_i::serviceFunction() {
 			tunerInput[inputIndex++] = Complex(pkt->dataBuffer[i], 0);
 	}
 
-	// Run Tuner: fills up f_<type>In vector
-	tuner->run();
+	{
+		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
 
-	// Run Filter: fills up f_<type>Out vector
-	filter->newComplexData(f_complexIn); // Tuner always outputs complex data in current implementation.
+		// Run Tuner: fills up f_<type>In vector
+		tuner->run();
 
-	size_t buffLen_1 = f_complexOut.size(); // Size the rest of the buffers according to the filtered data.
-	decimateOutput.reserve((buffLen_1+DecimationFactor-1)/DecimationFactor);
+		// Run Filter: fills up f_<type>Out vector
+		filter->newComplexData(f_complexIn); // Tuner always outputs complex data in current implementation.
 
-	// Run Decimation: fills up decimateOutput vector
-	if(decimate->run()) {
-		floatBuffer.reserve(decimateOutput.size());
-		// Buffer is full, so place the data into the floatBuffer
-		for(size_t j=0; j< decimateOutput.size(); j++) {
-			floatBuffer.push_back(decimateOutput[j].real());
-			floatBuffer.push_back(decimateOutput[j].imag());
+		size_t buffLen_1 = f_complexOut.size(); // Size the rest of the buffers according to the filtered data.
+		decimateOutput.reserve((buffLen_1+DecimationFactor-1)/DecimationFactor);
+
+		// Run Decimation: fills up decimateOutput vector
+		if(decimate->run()) {
+			floatBuffer.reserve(decimateOutput.size());
+			// Buffer is full, so place the data into the floatBuffer
+			for(size_t j=0; j< decimateOutput.size(); j++) {
+				floatBuffer.push_back(decimateOutput[j].real());
+				floatBuffer.push_back(decimateOutput[j].imag());
+			}
+			decimateOutput.clear();
+
+			// Push the data to the next component
+			dataFloat_Out->pushPacket(floatBuffer, pkt->T, pkt->EOS, pkt->streamID);
+			floatBuffer.clear();
 		}
-		decimateOutput.clear();
-
-		// Push the data to the next component
-		dataFloat_Out->pushPacket(floatBuffer, pkt->T, pkt->EOS, pkt->streamID);
-		floatBuffer.clear();
 	}
 
 	if (pkt->EOS) {
