@@ -140,7 +140,6 @@ private:
 
 	// Private variables
 	Real inputSampleRate;
-	Real outputSampleRate;
 	double chan_if;
 	bool tuningRFChanged; // Used to indicate if TuningRF has been changed so the CHAN_RF keyword can be added to SRI
 	bool RemakeFilter;    // Used to indicate we must redo the filter

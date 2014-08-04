@@ -28,7 +28,7 @@ Prefix:         %{_prefix}
 %define _infodir       %{_prefix}/info
 
 Name:           TuneFilterDecimate
-Version:        1.0.0
+Version:        1.0.1
 Release:        10%{?dist}
 Summary:        Component %{name}
 

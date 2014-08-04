@@ -628,6 +628,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         expectedDecimation = math.floor(sampleRate/self.DesiredOutputRate)
         expectedOutputRate = sampleRate/expectedDecimation
         self.assertAlmostEqual(expectedOutputRate,outputRate, places=2)
+        self.assertAlmostEqual(self.comp.ActualOutputRate,outputRate, places=2)
 
         return toCx(out)
     

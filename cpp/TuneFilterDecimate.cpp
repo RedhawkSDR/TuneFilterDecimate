@@ -352,13 +352,13 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 	}
 
 	// Calculate new output sample rate & modify the referenced SRI structure
-	outputSampleRate = InputRate / DecimationFactor;
-	sri.xdelta = 1 / outputSampleRate;
+	ActualOutputRate = InputRate / DecimationFactor;
+	sri.xdelta = 1.0 / ActualOutputRate;
 	LOG_DEBUG(TuneFilterDecimate_i, "Output xdelta = " << sri.xdelta
-			<< " Output Sample Rate " << outputSampleRate);
+			<< " ActualOutputRate " << ActualOutputRate);
 
-	if (outputSampleRate < FilterBW)
-		LOG_WARN(TuneFilterDecimate_i, "outputSampleRate " << outputSampleRate << " is less than FilterBW " << FilterBW);
+	if (ActualOutputRate < FilterBW)
+		LOG_WARN(TuneFilterDecimate_i, "ActualOutputRate " << ActualOutputRate << " is less than FilterBW " << FilterBW);
 
 	// Retrieve the front-end collected RF to determine the IF
 	bool validCollectionRF = false;
@@ -456,7 +456,7 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 		Real FL = FilterBW / 2.0;
 
 		//calculate the transition frequency necessary to avoid aliasing
-		Real maxTW = (outputSampleRate/2.0)-FL;
+		Real maxTW = (ActualOutputRate/2.0)-FL;
 		if (maxTW > 0 && maxTW <  filterProps.TransitionWidth)
 		{
 			LOG_WARN(TuneFilterDecimate_i, "input transition width "<< filterProps.TransitionWidth<<"  too large - replacing with "<< maxTW);

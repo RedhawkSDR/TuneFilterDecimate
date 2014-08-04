@@ -47,6 +47,7 @@ class TuneFilterDecimate_base : public Resource_impl, protected ThreadedComponen
         CORBA::ULongLong TuningRF;
         float FilterBW;
         float DesiredOutputRate;
+        double ActualOutputRate;
         double InputRF;
         double InputRate;
         CORBA::ULong DecimationFactor;

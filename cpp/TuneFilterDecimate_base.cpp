@@ -133,6 +133,14 @@ void TuneFilterDecimate_base::loadProperties()
                 "external",
                 "configure");
 
+    addProperty(ActualOutputRate,
+                "ActualOutputRate",
+                "",
+                "readonly",
+                "",
+                "external",
+                "configure");
+
     addProperty(InputRF,
                 0.0,
                 "InputRF",

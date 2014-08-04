@@ -76,6 +76,10 @@ TuneNorm is the tuneIF/sampling frequency</description>
     <kind kindtype="configure"/>
     <action type="external"/>
   </simple>
+  <simple id="ActualOutputRate" mode="readonly" type="double">
+    <kind kindtype="configure"/>
+    <action type="external"/>
+  </simple>
   <simple id="InputRF" mode="readonly" type="double">
     <description>The RF associated with this signal.  This is set by the keywords in the SRI.  If CHAN_IF is present its value takes precedence.  Otherwise COL_IF is used if present.  If neither is present then this value is invalid and RF TuneMode is disabled.</description>
     <value>0.0</value>
