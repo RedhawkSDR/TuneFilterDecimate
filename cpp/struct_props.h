@@ -87,4 +87,4 @@ inline bool operator!= (const filterProps_struct& s1, const filterProps_struct& 
 };
 
 
-#endif
+#endif // STRUCTPROPS_H

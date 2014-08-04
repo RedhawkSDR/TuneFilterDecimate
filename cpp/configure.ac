@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License along with this 
 # program.  If not, see http://www.gnu.org/licenses/.
 #
-AC_INIT(TuneFilterDecimate, 1.0.1)
+AC_INIT(TuneFilterDecimate, 1.1.0)
 AM_INIT_AUTOMAKE(nostdinc)
 
 AC_PROG_CC

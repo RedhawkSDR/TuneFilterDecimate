@@ -28,8 +28,8 @@ Prefix:         %{_prefix}
 %define _infodir       %{_prefix}/info
 
 Name:           TuneFilterDecimate
-Version:        1.0.1
-Release:        10%{?dist}
+Version:        1.1.0
+Release:        1%{?dist}
 Summary:        Component %{name}
 
 Group:          REDHAWK/Components
@@ -49,6 +49,8 @@ BuildRequires:  dsp-devel >= 1.0.0
 Requires:       dsp >= 1.0.0
 BuildRequires:  fftlib-devel >= 1.0.0
 Requires:       fftlib >= 1.0.0
+BuildRequires:  bulkioInterfaces >= 1.10
+Requires:       bulkioInterfaces >= 1.10
 
 %description
 Component %{name}

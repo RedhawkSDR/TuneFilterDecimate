@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License along with thi
 program.  If not, see http://www.gnu.org/licenses/.
 -->
 <!DOCTYPE softpkg PUBLIC "-//JTRS//DTD SCA V2.2.2 SPD//EN" "softpkg.dtd">
-<softpkg id="DCE:3fda4676-cd10-4421-b373-15e0d0118434" name="TuneFilterDecimate" type="sca_compliant" version="1.0.1">
+<softpkg id="DCE:3fda4676-cd10-4421-b373-15e0d0118434" name="TuneFilterDecimate" type="sca_compliant" version="1.1.0">
   <title></title>
   <author>
     <name>REDHAWK</name>

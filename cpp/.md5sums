@@ -1,0 +1,8 @@
+3da0d6d0aa2a14331e130188e90f2b78  main.cpp
+c99df9fa4ab0cd042eac42fcee6441c3  reconf
+8c4caf62fb0d3db5c11c1386bce47ba1  configure.ac
+2f373fbc41ddb66d9e63e803113cfaac  Makefile.am
+48c4471c6b7790f0f64a5b982a29a33f  struct_props.h
+bb268a9825ed42b0b76f49f5be7bb99d  TuneFilterDecimate_base.cpp
+066b58e6010de25b1d59bd0c32835793  TuneFilterDecimate_base.h
+2edeb4570ba55b42155b992f38587fb6  build.sh
