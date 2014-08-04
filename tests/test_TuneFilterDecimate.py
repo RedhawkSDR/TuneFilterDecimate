@@ -189,6 +189,19 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
             self.assertEqual(port_obj._non_existent(), False)
             self.assertEqual(port_obj._is_a(port.get_repid()),  True)
 
+    def testNanOutput(self):
+        """ This was a test case that produced NaN output due to floating round off error in calculating the window function for the filter
+        """
+        self.setProps(TuneMode="IF", TuningIF=0,FilterBW=80.0e3, DesiredOutputRate=100.0e3)
+        fs= 3.125e6
+        freq = .25e6
+        sig = genSinWave(fs, freq, 1024*1024)
+ 
+        out = self.main(sig,sampleRate=3.125e6)
+        
+        self.assertTrue(len(out)>0)
+        self.assertFalse(math.isnan(out[0].real) or math.isnan(out[0].imag))
+
                 
     def testCxIfOutput(self):
         """Use a complex sinusoid with the tuner in If Mode.  Tune the Sinusoid to baseband to get a constant output
