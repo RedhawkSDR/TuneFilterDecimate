@@ -30,6 +30,7 @@ import time
 from ossie.cf import ExtendedCF
 from scipy import fftpack
 import random
+import cmath
 
 enablePlotting = False
 if enablePlotting:
@@ -202,6 +203,41 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         self.assertTrue(len(out)>0)
         self.assertFalse(math.isnan(out[0].real) or math.isnan(out[0].imag))
 
+    def testDrift(self):
+        """ This was a test case to test the oscilator error due to floating point accumulation errors
+            we pass in all "ones" with no filtering or decimation to just get out the tuner value.  
+            Then we measure that the magnitude of the tunner stays near one and that it maintains minimal phase errors
+        """
+        fs= 100e3
+        freq = 12345.6789
+        self.setProps(TuneMode="IF", TuningIF=freq,FilterBW=100.0e3, DesiredOutputRate=100.0e3)
+        #sig = genSinWave(fs, freq, 1024*1024)
+        sig = [1]*5000000
+ 
+        out = self.main(sig,sampleRate=fs, complexData=False)
+        
+        self.assertTrue(len(out)>0)
+        print "got %s out" %len(out)
+        #print out[200]
+        outSteadyState = out[500:]
+        #check for phase errors
+        tuner = outSteadyState[0]
+        dPhase = -2*math.pi*freq/fs
+        phase = cmath.phase(outSteadyState[0])
+        for i, val in enumerate(outSteadyState):
+            #print phase, val
+            valPhase = cmath.phase(val)
+            #check for plus/minus pi ambiguity here
+            if valPhase <-3.1 and phase > 3.1:
+               valPhase+= 2*math.pi
+            elif valPhase >3.1 and phase < -3.1:
+                phase+=2*math.pi
+            self.assertAlmostEqual(phase, valPhase, 2)
+            phase=valPhase+dPhase
+            if phase<-math.pi:
+                phase+=2*math.pi
+        #check for magnitude errors - the abs of each output should be approximately one
+        self.assertTrue(all([abs(abs(x)-1.0) <1e-3 for x in outSteadyState]))
                 
     def testCxIfOutput(self):
         """Use a complex sinusoid with the tuner in If Mode.  Tune the Sinusoid to baseband to get a constant output
