@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE softpkg PUBLIC "-//JTRS//DTD SCA V2.2.2 SPD//EN" "softpkg.dtd">
 <!-- 
 This file is protected by Copyright. Please refer to the COPYRIGHT file distributed with this 
 source distribution.
@@ -16,9 +16,8 @@ PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with this 
 program.  If not, see http://www.gnu.org/licenses/.
 -->
-<!DOCTYPE softpkg PUBLIC "-//JTRS//DTD SCA V2.2.2 SPD//EN" "softpkg.dtd">
-<softpkg id="DCE:3fda4676-cd10-4421-b373-15e0d0118434" name="TuneFilterDecimate" type="sca_compliant" version="1.1.0">
-  <title></title>
+<softpkg version="1.1.0" id="DCE:3fda4676-cd10-4421-b373-15e0d0118434" name="TuneFilterDecimate" type="sca_compliant">
+  <title/>
   <author>
     <name>REDHAWK</name>
   </author>
