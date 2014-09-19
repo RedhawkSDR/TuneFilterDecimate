@@ -650,17 +650,47 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         self.assertEqual(tuneRF, self.comp.TuningRF)
         self.assertEqual(tuneNorm, self.comp.TuningNorm)
 
-    def main(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='long'):
+    def testNoEOS(self):
+        inpRate = 25e6
+        desiredOutRate = 2e6
+        
+        numSamples=12345
+        
+        sig = [1000*random.random() for _ in xrange(numSamples)]
+        
+        self.comp.TuneMode ="IF"
+        self.comp.TuningIF = 3.6e6
+        self.comp.FilterBW = 2.05e6
+        self.comp.DesiredOutputRate = 2e6
+        
+        out = self.main(sig,inpRate, complexData=False, pktSize=1)
+        count=0
+        while not self.sink._sink.gotEOS:
+            time.sleep(.01)
+            count+=1
+            if count==200:
+                break
+        
+        self.assertEqual(self.sink._sink.gotEOS,1)
+
+        print self.comp.api()   
+
+    def main(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='long', pktSize=8192):
         """The main engine for all the test cases - configure the equation, push data, and get output
            As applicable
         """
         #data processing is asynchronos - so wait until the data is all processed
         count=0
         keywords = [sb.io_helpers.SRIKeyword('COL_RF',colRF, colRfType)]
-        self.src.push(inData,
-                      complexData = complexData, 
-                      sampleRate=sampleRate,
-                      SRIKeywords = keywords)
+        numPushes = (len(inData)+pktSize-1)/pktSize
+        lastPush = numPushes-1
+        for i in xrange(numPushes):
+            eos = i==lastPush
+            self.src.push(inData[i*pktSize:(i+1)*pktSize],
+                          complexData = complexData, 
+                          sampleRate=sampleRate,
+                          SRIKeywords = keywords,
+                          EOS=eos)
         out=[]
         while True:
             newOut = self.sink.getData()
@@ -674,7 +704,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         
         sri = self.sink.sri()
         outputRate = 1.0/ sri.xdelta
-        expectedDecimation = math.floor(sampleRate/self.DesiredOutputRate)
+        expectedDecimation = math.floor(sampleRate/self.comp.DesiredOutputRate)
         expectedOutputRate = sampleRate/expectedDecimation
         self.assertAlmostEqual(expectedOutputRate,outputRate, places=2)
         self.assertAlmostEqual(self.comp.ActualOutputRate,outputRate, places=2)

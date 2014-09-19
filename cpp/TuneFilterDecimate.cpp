@@ -279,6 +279,7 @@ int TuneFilterDecimate_i::serviceFunction() {
 			tunerInput[inputIndex++] = Complex(pkt->dataBuffer[i], 0);
 	}
 
+	bool packetPushed(false);
 	{
 		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);
 
@@ -289,26 +290,35 @@ int TuneFilterDecimate_i::serviceFunction() {
 		filter->newComplexData(f_complexIn); // Tuner always outputs complex data in current implementation.
 
 		size_t buffLen_1 = f_complexOut.size(); // Size the rest of the buffers according to the filtered data.
-		decimateOutput.reserve((buffLen_1+DecimationFactor-1)/DecimationFactor);
+		if (buffLen_1 !=0)
+		{
+			//this line should really be delagated to decimator
+			decimateOutput.reserve(decimateOutput.size()+(buffLen_1+DecimationFactor-1)/DecimationFactor);
+			// Run Decimation: fills up decimateOutput vector
+			if(decimate->run()) {
+				floatBuffer.reserve(2*decimateOutput.size());
+				// Buffer is full, so place the data into the floatBuffer
+				for(size_t j=0; j< decimateOutput.size(); j++) {
+					floatBuffer.push_back(decimateOutput[j].real());
+					floatBuffer.push_back(decimateOutput[j].imag());
+				}
+				decimateOutput.clear();
 
-		// Run Decimation: fills up decimateOutput vector
-		if(decimate->run()) {
-			floatBuffer.reserve(decimateOutput.size());
-			// Buffer is full, so place the data into the floatBuffer
-			for(size_t j=0; j< decimateOutput.size(); j++) {
-				floatBuffer.push_back(decimateOutput[j].real());
-				floatBuffer.push_back(decimateOutput[j].imag());
+				// Push the data to the next component
+				dataFloat_Out->pushPacket(floatBuffer, pkt->T, pkt->EOS, pkt->streamID);
+				floatBuffer.clear();
+				packetPushed=true;
 			}
-			decimateOutput.clear();
-
-			// Push the data to the next component
-			dataFloat_Out->pushPacket(floatBuffer, pkt->T, pkt->EOS, pkt->streamID);
-			floatBuffer.clear();
 		}
 	}
 
 	if (pkt->EOS) {
 		LOG_DEBUG(TuneFilterDecimate_i, "Received EOS for stream: '" << pkt->streamID << "'");
+		if (!packetPushed)
+		{
+			std::vector<float> tmp;
+			dataFloat_Out->pushPacket(tmp, pkt->T, pkt->EOS, pkt->streamID);
+		}
 		streamID = ""; // Reset streamID on EOS to allow processing of new stream
 		RemakeFilter = true; // Ensure filter is remade on next received packet
 	}
