@@ -675,7 +675,42 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
 
         print self.comp.api()   
 
-    def main(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='long', pktSize=8192):
+    def testMultiStream(self):
+        
+        fileSize =2.70e6
+        floatSize = 1
+        numSamples = int(fileSize/floatSize)/2*2
+        sig = [1000*random.random() for _ in xrange(numSamples)]
+            
+        inpRate = 25e6
+        desiredOutRate = 2e6
+    
+        self.comp.TuneMode ="IF"
+        self.comp.TuningIF = 3.6e6
+        self.comp.FilterBW = 2.05e6
+        self.comp.DesiredOutputRate = 2e6
+        
+        outA = self.main(sig,inpRate, complexData=True)
+
+        outB = self.main(sig,inpRate, complexData=True)
+
+        print "input lenght %s" %len(sig)
+        print "got output %s, %s" %(len(outA), len(outB))
+
+        for i, (a, b) in enumerate(zip(outA,outB)):
+            try:
+                self.assertAlmostEqual(a.real, b.real, 2)
+                self.assertAlmostEqual(a.imag, b.imag, 2)
+            except:
+                print "problem with sample %s" %i
+                print a, b
+                print abs(a), abs(b)
+                raise
+
+        print self.comp.api()
+
+
+    def main(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='long', pktSize=8192, checkOutputSize=True):
         """The main engine for all the test cases - configure the equation, push data, and get output
            As applicable
         """
@@ -708,8 +743,18 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         expectedOutputRate = sampleRate/expectedDecimation
         self.assertAlmostEqual(expectedOutputRate,outputRate, places=2)
         self.assertAlmostEqual(self.comp.ActualOutputRate,outputRate, places=2)
-
-        return toCx(out)
+        
+        outCx = toCx(out)
+        if checkOutputSize:
+            print "checking output size"
+            frameSize = self.comp.filterProps.FFT_size-self.comp.taps+1
+            inDataNum = len(inData)
+            if complexData:
+                inDataNum/=2
+            outDataNum = len(inData)/frameSize*frameSize/self.comp.DecimationFactor
+            
+            self.assertEqual(outDataNum, len(outCx))
+        return outCx
     
 if __name__ == "__main__":
     ossie.utils.testing.main("../TuneFilterDecimate.spd.xml") # By default tests all implementations
