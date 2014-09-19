@@ -228,7 +228,6 @@ int TuneFilterDecimate_i::serviceFunction() {
 		LOG_WARN(TuneFilterDecimate_i, "Input queue has been flushed.  Data has been lost");
 		RemakeFilter = true; // flush filter
 	}
-
 	if (streamID!=pkt->streamID)
 	{
 		if (streamID=="")
@@ -266,6 +265,8 @@ int TuneFilterDecimate_i::serviceFunction() {
 		iInc = 1;
 		buffLen_0 = pkt->dataBuffer.size();
 	}
+	//std::cout<<"input data size = "<<  buffLen_0<<std::endl;
+
 	tunerInput.resize(buffLen_0);
 	f_complexIn.resize(buffLen_0);
 
@@ -292,10 +293,14 @@ int TuneFilterDecimate_i::serviceFunction() {
 		size_t buffLen_1 = f_complexOut.size(); // Size the rest of the buffers according to the filtered data.
 		if (buffLen_1 !=0)
 		{
-			//this line should really be delagated to decimator
-			decimateOutput.reserve(decimateOutput.size()+(buffLen_1+DecimationFactor-1)/DecimationFactor);
+			//std::cout<<"buffLen_1 = "<< buffLen_1<<std::endl;
+			decimateOutput.reserve((buffLen_1+DecimationFactor-1)/DecimationFactor);
 			// Run Decimation: fills up decimateOutput vector
-			if(decimate->run()) {
+			decimate->run();
+			size_t decOutputSize(decimateOutput.size());
+			if (decOutputSize !=0)
+			{
+				//std::cout<<"decOutputSize = "<< decOutputSize<<std::endl;
 				floatBuffer.reserve(2*decimateOutput.size());
 				// Buffer is full, so place the data into the floatBuffer
 				for(size_t j=0; j< decimateOutput.size(); j++) {
@@ -303,7 +308,6 @@ int TuneFilterDecimate_i::serviceFunction() {
 					floatBuffer.push_back(decimateOutput[j].imag());
 				}
 				decimateOutput.clear();
-
 				// Push the data to the next component
 				dataFloat_Out->pushPacket(floatBuffer, pkt->T, pkt->EOS, pkt->streamID);
 				floatBuffer.clear();
@@ -321,6 +325,12 @@ int TuneFilterDecimate_i::serviceFunction() {
 		}
 		streamID = ""; // Reset streamID on EOS to allow processing of new stream
 		RemakeFilter = true; // Ensure filter is remade on next received packet
+		// There is a desire that the tuner Phase gets reset to 0 on EOS
+		// We will solve this by deleteing the Tuner so next loop will create a brand new one
+		if (tuner != NULL) {
+			delete tuner;
+			tuner = NULL;
+		}
 	}
 
 	delete pkt; // Must delete the dataTransfer object when no longer needed
