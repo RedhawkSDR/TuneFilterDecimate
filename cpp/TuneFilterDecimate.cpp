@@ -96,7 +96,7 @@ void TuneFilterDecimate_i::TuningIFChanged(const double *oldValue, const double 
 	}
 }
 
-void TuneFilterDecimate_i::TuningRFChanged(const unsigned long long *oldValue, const unsigned long long *newValue)
+void TuneFilterDecimate_i::TuningRFChanged(const CORBA::ULongLong *oldValue, const CORBA::ULongLong *newValue)
 {
 	if (*oldValue != *newValue) {
 		boost::mutex::scoped_lock lock(TuneFilterDecimateLock_);

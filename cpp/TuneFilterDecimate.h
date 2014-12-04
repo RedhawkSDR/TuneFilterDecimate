@@ -155,7 +155,7 @@ private:
     // Property Change Listener Callbacks
     void TuningNormChanged(const double *oldValue, const double *newValue);
     void TuningIFChanged(const double *oldValue, const double *newValue);
-    void TuningRFChanged(const unsigned long long *oldValue, const unsigned long long *newValue);
+    void TuningRFChanged(const CORBA::ULongLong *oldValue, const CORBA::ULongLong *newValue);
     void FilterBWChanged(const float *oldValue, const float *newValue);
     void DesiredOutputRateChanged(const float *oldValue, const float *newValue);
     void filterPropsChanged(const filterProps_struct *oldValue, const filterProps_struct *newValue);
