@@ -751,8 +751,10 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
             inDataNum = len(inData)
             if complexData:
                 inDataNum/=2
-            outDataNum = len(inData)/frameSize*frameSize/self.comp.DecimationFactor
             
+            expectedCompleteFrames = inDataNum/frameSize # int, truncated if incomplete last frame
+            outDataNum = math.ceil(expectedCompleteFrames*frameSize/expectedDecimation)
+                # round up if there is a fractional number of expected output samples
             self.assertEqual(outDataNum, len(outCx))
         return outCx
     
