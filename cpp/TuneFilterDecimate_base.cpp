@@ -33,18 +33,18 @@ TuneFilterDecimate_base::TuneFilterDecimate_base(const char *uuid, const char *l
 {
     loadProperties();
 
-    dataFloat_In = new bulkio::InFloatPort("dataFloat_In");
-    addPort("dataFloat_In", dataFloat_In);
-    dataFloat_Out = new bulkio::OutFloatPort("dataFloat_Out");
-    addPort("dataFloat_Out", dataFloat_Out);
+    dataFloat_in = new bulkio::InFloatPort("dataFloat_in");
+    addPort("dataFloat_in", dataFloat_in);
+    dataFloat_out = new bulkio::OutFloatPort("dataFloat_out");
+    addPort("dataFloat_out", dataFloat_out);
 }
 
 TuneFilterDecimate_base::~TuneFilterDecimate_base()
 {
-    delete dataFloat_In;
-    dataFloat_In = 0;
-    delete dataFloat_Out;
-    dataFloat_Out = 0;
+    delete dataFloat_in;
+    dataFloat_in = 0;
+    delete dataFloat_out;
+    dataFloat_out = 0;
 }
 
 /*******************************************************************************************

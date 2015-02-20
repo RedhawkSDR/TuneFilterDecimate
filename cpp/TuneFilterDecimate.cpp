@@ -60,7 +60,7 @@ TuneFilterDecimate_base(uuid, label)
 	inputComplex = true;
 
 	// Initialize provides port maxQueueDepth
-	dataFloat_In->setMaxQueueDepth(1000);
+	dataFloat_in->setMaxQueueDepth(1000);
 
 	addPropertyChangeListener("TuningNorm", this, &TuneFilterDecimate_i::TuningNormChanged); //configureTuner
 	addPropertyChangeListener("TuningIF", this, &TuneFilterDecimate_i::TuningIFChanged); //configureTuner
@@ -208,11 +208,11 @@ void TuneFilterDecimate_i::start() throw (CORBA::SystemException, CF::Resource::
 	if (this->started()) { return; }
 
 	// Process the SRI and create an initial filter if one is not already created
-	if ((*(dataFloat_In->activeSRIs())).length() > 0 ){
-		if ((*(dataFloat_In->activeSRIs())).length() > 1 ) {
+	if ((*(dataFloat_in->activeSRIs())).length() > 0 ){
+		if ((*(dataFloat_in->activeSRIs())).length() > 1 ) {
 			LOG_WARN(TuneFilterDecimate_i, "Input has more than one active SRI, using first one");
 		}
-		configureTFD((*(dataFloat_In->activeSRIs()))[0]);
+		configureTFD((*(dataFloat_in->activeSRIs()))[0]);
 	}
 
 	// Call Base Class Start which will start serviceFunction thread
@@ -220,7 +220,7 @@ void TuneFilterDecimate_i::start() throw (CORBA::SystemException, CF::Resource::
 }
 
 int TuneFilterDecimate_i::serviceFunction() {
-	bulkio::InFloatPort::dataTransfer *pkt = dataFloat_In->getPacket(0.0); // non-blocking
+	bulkio::InFloatPort::dataTransfer *pkt = dataFloat_in->getPacket(0.0); // non-blocking
 	if(pkt == NULL) return NOOP;
 
 	if(pkt->inputQueueFlushed)
@@ -242,10 +242,10 @@ int TuneFilterDecimate_i::serviceFunction() {
 	}
 
 	// Check if SRI has been changed
-	if(pkt->sriChanged || RemakeFilter || tuningRFChanged || (dataFloat_Out->getCurrentSRI().count(pkt->streamID)==0)) {
+	if(pkt->sriChanged || RemakeFilter || tuningRFChanged || (dataFloat_out->getCurrentSRI().count(pkt->streamID)==0)) {
 		LOG_DEBUG(TuneFilterDecimate_i, "Reconfiguring TFD");
 		configureTFD(pkt->SRI); // Process and/or update the SRI
-		dataFloat_Out->pushSRI(pkt->SRI); // Push the new SRI to the next component
+		dataFloat_out->pushSRI(pkt->SRI); // Push the new SRI to the next component
 		tuningRFChanged = false;
 	}
 
@@ -309,7 +309,7 @@ int TuneFilterDecimate_i::serviceFunction() {
 				}
 				decimateOutput.clear();
 				// Push the data to the next component
-				dataFloat_Out->pushPacket(floatBuffer, pkt->T, pkt->EOS, pkt->streamID);
+				dataFloat_out->pushPacket(floatBuffer, pkt->T, pkt->EOS, pkt->streamID);
 				floatBuffer.clear();
 				packetPushed=true;
 			}
@@ -321,7 +321,7 @@ int TuneFilterDecimate_i::serviceFunction() {
 		if (!packetPushed)
 		{
 			std::vector<float> tmp;
-			dataFloat_Out->pushPacket(tmp, pkt->T, pkt->EOS, pkt->streamID);
+			dataFloat_out->pushPacket(tmp, pkt->T, pkt->EOS, pkt->streamID);
 		}
 		streamID = ""; // Reset streamID on EOS to allow processing of new stream
 		RemakeFilter = true; // Ensure filter is remade on next received packet

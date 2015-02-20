@@ -41,6 +41,7 @@ distclean-local:
 # you wish to manually control these options.
 include $(srcdir)/Makefile.am.ide
 TuneFilterDecimate_SOURCES = $(redhawk_SOURCES_auto)
-TuneFilterDecimate_CXXFLAGS = -Wall $(PROJECTDEPS_CFLAGS) $(BOOST_CPPFLAGS) $(INTERFACEDEPS_CFLAGS)
-TuneFilterDecimate_LDADD = $(PROJECTDEPS_LIBS) $(BOOST_LDFLAGS) $(BOOST_THREAD_LIB) $(BOOST_SYSTEM_LIB) $(INTERFACEDEPS_LIBS)
-TuneFilterDecimate_LDFLAGS = -Wall
+TuneFilterDecimate_LDADD = $(PROJECTDEPS_LIBS) $(BOOST_LDFLAGS) $(BOOST_THREAD_LIB) $(BOOST_REGEX_LIB) $(BOOST_SYSTEM_LIB) $(INTERFACEDEPS_LIBS) $(redhawk_LDADD_auto)
+TuneFilterDecimate_CXXFLAGS = -Wall $(PROJECTDEPS_CFLAGS) $(BOOST_CPPFLAGS) $(INTERFACEDEPS_CFLAGS) $(redhawk_INCLUDES_auto)
+TuneFilterDecimate_LDFLAGS = -Wall $(redhawk_LDFLAGS_auto)
+

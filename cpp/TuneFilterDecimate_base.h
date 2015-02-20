@@ -55,8 +55,8 @@ class TuneFilterDecimate_base : public Resource_impl, protected ThreadedComponen
         filterProps_struct filterProps;
 
         // Ports
-        bulkio::InFloatPort *dataFloat_In;
-        bulkio::OutFloatPort *dataFloat_Out;
+        bulkio::InFloatPort *dataFloat_in;
+        bulkio::OutFloatPort *dataFloat_out;
 
     private:
 };
