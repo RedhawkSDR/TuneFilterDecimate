@@ -668,7 +668,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         while not self.sink._sink.gotEOS:
             time.sleep(.01)
             count+=1
-            if count==200:
+            if count==500:
                 break
         
         self.assertEqual(self.sink._sink.gotEOS,1)
@@ -732,7 +732,9 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
             if newOut:
                 out.extend(newOut)
                 count=0
-            elif count==100:
+            elif self.sink._sink.gotEOS:
+                break
+            elif count==200:
                 break
             time.sleep(.01)
             count+=1
