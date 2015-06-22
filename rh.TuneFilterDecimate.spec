@@ -27,7 +27,7 @@ Prefix:         %{_prefix}
 %define _mandir        %{_prefix}/man
 %define _infodir       %{_prefix}/info
 
-Name:           TuneFilterDecimate
+Name:           rh.TuneFilterDecimate
 Version:        2.0.0
 Release:        1%{?dist}
 Summary:        Component %{name}
@@ -49,8 +49,6 @@ BuildRequires:  dsp-devel >= 1.0.0
 Requires:       dsp >= 1.0.0
 BuildRequires:  fftlib-devel >= 1.0.0
 Requires:       fftlib >= 1.0.0
-BuildRequires:  bulkioInterfaces >= 1.10
-Requires:       bulkioInterfaces >= 1.10
 
 %description
 Component %{name}
@@ -66,7 +64,7 @@ Component %{name}
 # Implementation cpp
 pushd cpp
 ./reconf
-%define _bindir %{_prefix}/dom/components/TuneFilterDecimate/cpp
+%define _bindir %{_prefix}/dom/components/rh/TuneFilterDecimate/cpp
 %configure
 make %{?_smp_mflags}
 popd
@@ -76,7 +74,7 @@ popd
 rm -rf $RPM_BUILD_ROOT
 # Implementation cpp
 pushd cpp
-%define _bindir %{_prefix}/dom/components/TuneFilterDecimate/cpp
+%define _bindir %{_prefix}/dom/components/rh/TuneFilterDecimate/cpp
 make install DESTDIR=$RPM_BUILD_ROOT
 popd
 
@@ -87,9 +85,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,redhawk,redhawk,-)
-%dir %{_prefix}/dom/components/%{name}
-%{_prefix}/dom/components/%{name}/TuneFilterDecimate.scd.xml
-%{_prefix}/dom/components/%{name}/TuneFilterDecimate.prf.xml
-%{_prefix}/dom/components/%{name}/TuneFilterDecimate.spd.xml
-%{_prefix}/dom/components/%{name}/cpp
+%dir %{_prefix}/dom/components/rh/TuneFilterDecimate
+%{_prefix}/dom/components/rh/TuneFilterDecimate/TuneFilterDecimate.scd.xml
+%{_prefix}/dom/components/rh/TuneFilterDecimate/TuneFilterDecimate.prf.xml
+%{_prefix}/dom/components/rh/TuneFilterDecimate/TuneFilterDecimate.spd.xml
+%{_prefix}/dom/components/rh/TuneFilterDecimate/cpp
 

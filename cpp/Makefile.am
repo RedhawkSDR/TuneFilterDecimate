@@ -16,11 +16,11 @@
 # program.  If not, see http://www.gnu.org/licenses/.
 #
 
-ossieName = TuneFilterDecimate
-bindir = $(prefix)/dom/components/TuneFilterDecimate/cpp/
+ossieName = rh.TuneFilterDecimate
+bindir = $(prefix)/dom/components/rh/TuneFilterDecimate/cpp/
 bin_PROGRAMS = TuneFilterDecimate
 
-xmldir = $(prefix)/dom/components/TuneFilterDecimate/
+xmldir = $(prefix)/dom/components/rh/TuneFilterDecimate/
 dist_xml_DATA = ../TuneFilterDecimate.scd.xml ../TuneFilterDecimate.prf.xml ../TuneFilterDecimate.spd.xml
 
 distclean-local:
