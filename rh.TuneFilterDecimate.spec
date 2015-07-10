@@ -37,18 +37,18 @@ License:        GPLv3+
 Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  redhawk-devel >= 1.10
-Requires:       redhawk >= 1.10
+BuildRequires:  redhawk-devel >= 2.0
+Requires:       redhawk >= 2.0
+
+BuildRequires:  rh.dsp-devel >= 2.0
+Requires:       rh.dsp >= 2.0
+BuildRequires:  rh.fftlib-devel >= 2.0
+Requires:       rh.fftlib >= 2.0
 
 # Interface requirements
-BuildRequires:  bulkioInterfaces
-Requires:       bulkioInterfaces
+BuildRequires:  bulkioInterfaces >= 2.0
+Requires:       bulkioInterfaces >= 2.0
 
-# Softpkg requirements
-BuildRequires:  dsp-devel >= 1.0.0
-Requires:       dsp >= 1.0.0
-BuildRequires:  fftlib-devel >= 1.0.0
-Requires:       fftlib >= 1.0.0
 
 %description
 Component %{name}
