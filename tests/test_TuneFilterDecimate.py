@@ -563,7 +563,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
             self.src.push(sig,
                       complexData = False,
                       sampleRate=fs,
-                      SRIKeywords = [sb.io_helpers.SRIKeyword('COL_RF',colRF, 'long')])
+                      SRIKeywords = [sb.io_helpers.SRIKeyword('COL_RF',colRF, 'double')])
             try:
                 self.setProps(filterProps=[random.choice(fftSelections),dw,delta])
             except Exception, e:
@@ -606,9 +606,9 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
     def testRfComplexThree(self):
         self.tuneModeTest("RF", True, 'float')
 
-    def tuneModeTest(self,tuneMode, cmplx=False, colRfType='long'):
+    def tuneModeTest(self,tuneMode, cmplx=False, colRfType='double'):
         inpRate = 1e6
-        colRf= 1e9
+        colRF= 1e9
         sig = genSinWave(inpRate, 1000, 1024*1024)
         
         self.setProps(DesiredOutputRate=inpRate)
@@ -619,7 +619,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
             cfIF = inpRate / 4.0
 
         tuneIF = inpRate/8.0
-        tuneRF = tuneIF - cfIF + colRf
+        tuneRF = tuneIF - cfIF + colRF
         tuneNorm = float(tuneIF)/inpRate
         
         self.comp.TuneMode = tuneMode
@@ -637,14 +637,14 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         else:
             raise RuntimeError("invalid tune mode")
         
-        out = self.main(sig,inpRate, colRF=colRf, complexData=cmplx, colRfType=colRfType)
+        out = self.main(sig,inpRate, colRF=colRF, complexData=cmplx, colRfType=colRfType)
 
         if DEBUG_MODE:
             self.comp.api()
 
         self.assertEqual(tuneMode, self.comp.TuneMode)
         self.assertEqual(inpRate, self.comp.InputRate)
-        self.assertEqual(colRf, self.comp.InputRF)
+        self.assertEqual(colRF, self.comp.InputRF)
 
         self.assertEqual(tuneIF, self.comp.TuningIF)
         self.assertEqual(tuneRF, self.comp.TuningRF)
@@ -710,7 +710,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         print self.comp.api()
 
 
-    def main(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='long', pktSize=8192, checkOutputSize=True):
+    def main(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='double', pktSize=8192, checkOutputSize=True):
         """The main engine for all the test cases - configure the equation, push data, and get output
            As applicable
         """

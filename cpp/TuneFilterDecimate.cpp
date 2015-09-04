@@ -383,8 +383,8 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 	// Retrieve the front-end collected RF to determine the IF
 	bool validCollectionRF = false;
 	bool validChannelRF = false;
-	long collection_rf = getKeywordByID<CORBA::Long>(sri, "COL_RF", validCollectionRF);
-	long channel_rf = getKeywordByID<CORBA::Long>(sri, "CHAN_RF", validChannelRF);
+	double collection_rf = getKeywordByID<CORBA::Double>(sri, "COL_RF", validCollectionRF);
+	double channel_rf = getKeywordByID<CORBA::Double>(sri, "CHAN_RF", validChannelRF);
 	double tmpInputRF;
 	if ((validCollectionRF) && (validChannelRF)) {
 		LOG_WARN(TuneFilterDecimate_i, "Input SRI contains both COL_RF and CHAN_RF, using CHAN_RF");
@@ -422,7 +422,7 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 
 	// Add the CHAN_RF keyword to the SRI if we know the input RF
 	if (InputRF != 0) {
-		if(!setKeywordByID<CORBA::Long>(sri, "CHAN_RF", TuningRF))
+		if(!setKeywordByID<CORBA::Double>(sri, "CHAN_RF", (double)TuningRF))
 			LOG_WARN(TuneFilterDecimate_i, "SRI Keyword CHAN_RF could not be set.");
 	}
 
