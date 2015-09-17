@@ -22,10 +22,13 @@ bin_PROGRAMS = TuneFilterDecimate
 
 xmldir = $(prefix)/dom/components/rh/TuneFilterDecimate/
 dist_xml_DATA = ../TuneFilterDecimate.scd.xml ../TuneFilterDecimate.prf.xml ../TuneFilterDecimate.spd.xml
-ACLOCAL_AMFLAGS = -I$(OSSIEHOME)/share/aclocal/ossie
+ACLOCAL_AMFLAGS = -I m4 -I${OSSIEHOME}/share/aclocal/ossie
+AUTOMAKE_OPTIONS = subdir-objects
+
 
 
 distclean-local:
+	rm -rf m4
 	rm -f config.*
 	rm -rf autom4te.cache
 	rm -f acinclude.m4
