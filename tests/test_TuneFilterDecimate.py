@@ -690,9 +690,11 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         self.comp.FilterBW = 2.05e6
         self.comp.DesiredOutputRate = 2e6
         
-        outA = self.main(sig,inpRate, complexData=True)
+        outA = self.main(sig,inpRate, complexData=True, streamID="tfd-stream-outA")
+        self.src.reset()
+        self.sink.reset()
 
-        outB = self.main(sig,inpRate, complexData=True)
+        outB = self.main(sig,inpRate, complexData=True, streamID="tfd-stream-outB")
 
         print "input lenght %s" %len(sig)
         print "got output %s, %s" %(len(outA), len(outB))
@@ -710,7 +712,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         print self.comp.api()
 
 
-    def main(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='double', pktSize=8192, checkOutputSize=True):
+    def main(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='double', pktSize=8192, checkOutputSize=True, streamID="tfd-stream-1"):
         """The main engine for all the test cases - configure the equation, push data, and get output
            As applicable
         """
@@ -722,6 +724,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         for i in xrange(numPushes):
             eos = i==lastPush
             self.src.push(inData[i*pktSize:(i+1)*pktSize],
+                          streamID=streamID,
                           complexData = complexData, 
                           sampleRate=sampleRate,
                           SRIKeywords = keywords,
