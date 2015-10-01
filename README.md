@@ -1,8 +1,8 @@
-# REDHAWK Basic Components TuneFilterDecimate
+# REDHAWK Basic Components rh.TuneFilterDecimate
  
 ## Description
 
-Contains the source and build script for the REDHAWK Basic Components TuneFilterDecimate. This component selects a narrowband cut from an input signal.   Tuning, filtering and decimation are used to remove noise and interference in other frequency bands and reduce the sampling rate for more efficient downstream processing.
+Contains the source and build script for the REDHAWK Basic Components rh.TuneFilterDecimate. This component selects a narrowband cut from an input signal.   Tuning, filtering and decimation are used to remove noise and interference in other frequency bands and reduce the sampling rate for more efficient downstream processing.
   
  
 ## Installation Instructions
@@ -15,4 +15,4 @@ This work is protected by Copyright. Please refer to the [Copyright File](COPYRI
 
 ## License
 
-REDHAWK Basic Components TuneFilterDecimate is licensed under the GNU General Public License (GPL).
+REDHAWK Basic Components rh.TuneFilterDecimate is licensed under the GNU General Public License (GPL).
