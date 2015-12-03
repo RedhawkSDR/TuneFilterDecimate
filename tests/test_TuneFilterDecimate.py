@@ -136,7 +136,12 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         #######################################################################
         # Simulate regular component shutdown
         self.comp.releaseObject()
-        self.sink.stop()      
+
+        # Clean up unit test
+        self.src.stop()
+        self.sink.stop()
+        self.src.releaseObject()
+        self.sink.releaseObject()
         ossie.utils.testing.ScaComponentTestCase.tearDown(self)
 
     def setupComponent(self):
