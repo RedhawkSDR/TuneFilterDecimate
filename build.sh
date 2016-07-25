@@ -22,9 +22,9 @@ if [ "$1" = "rpm" ]; then
     if [ -e rh.TuneFilterDecimate.spec ]; then
         mydir=`dirname $0`
         tmpdir=`mktemp -d`
-        cp -r ${mydir} ${tmpdir}/rh.TuneFilterDecimate-2.0.0
-        tar czf ${tmpdir}/rh.TuneFilterDecimate-2.0.0.tar.gz --exclude=".svn" -C ${tmpdir} rh.TuneFilterDecimate-2.0.0
-        rpmbuild -ta ${tmpdir}/rh.TuneFilterDecimate-2.0.0.tar.gz
+        cp -r ${mydir} ${tmpdir}/rh.TuneFilterDecimate-2.0.1
+        tar czf ${tmpdir}/rh.TuneFilterDecimate-2.0.1.tar.gz --exclude=".svn" -C ${tmpdir} rh.TuneFilterDecimate-2.0.1
+        rpmbuild -ta ${tmpdir}/rh.TuneFilterDecimate-2.0.1.tar.gz
         rm -rf $tmpdir
     else
         echo "Missing RPM spec file in" `pwd`
