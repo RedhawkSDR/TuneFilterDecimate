@@ -593,6 +593,9 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
     def testNormComplex(self):
         self.tuneModeTest("NORM", True)
 
+    def testNormKwCx(self):
+        self.tuneModeKwTest("NORM", True)
+
     def testRfReal(self):
         self.tuneModeTest("RF", False)
 
@@ -643,6 +646,50 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
             raise RuntimeError("invalid tune mode")
         
         out = self.main(sig,inpRate, colRF=colRF, complexData=cmplx, colRfType=colRfType)
+
+        if DEBUG_MODE:
+            self.comp.api()
+
+        self.assertEqual(tuneMode, self.comp.TuneMode)
+        self.assertEqual(inpRate, self.comp.InputRate)
+        self.assertEqual(colRF, self.comp.InputRF)
+
+        self.assertEqual(tuneIF, self.comp.TuningIF)
+        self.assertEqual(tuneRF, self.comp.TuningRF)
+        self.assertEqual(tuneNorm, self.comp.TuningNorm)
+
+    def tuneModeKwTest(self,tuneMode, cmplx=False, colRfType='double'):
+        inpRate = 1e6
+        colRF= 1e9
+        sig = genSinWave(inpRate, 1000, 1024*1024)
+        
+        self.setProps(DesiredOutputRate=inpRate)
+        
+        if cmplx:
+            cfIF = 0.0
+        else:
+            cfIF = inpRate / 4.0
+
+        tuneIF = inpRate/8.0
+        tuneRF = tuneIF - cfIF + colRF
+        tuneNorm = float(tuneIF)/inpRate
+        
+        self.comp.TuneMode = tuneMode
+        if tuneMode== "NORM":
+            self.comp.TuningNorm = tuneNorm
+            self.assertEqual(tuneNorm, self.comp.TuningNorm)
+        elif tuneMode== "IF":
+            print "set IF value"
+            self.comp.TuningIF = tuneIF
+            self.assertEqual(self.comp.TuningIF, tuneIF)
+            print "IF value set"
+        elif tuneMode== "RF":
+            self.comp.TuningRF = tuneRF
+            self.assertEqual(self.comp.TuningRF, tuneRF)
+        else:
+            raise RuntimeError("invalid tune mode")
+        
+        out = self.checkKeywords(sig,inpRate, colRF=colRF, complexData=cmplx, colRfType=colRfType, expectedChanRf=tuneRF)
 
         if DEBUG_MODE:
             self.comp.api()
@@ -716,6 +763,34 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
 
         print self.comp.api()
 
+
+    def checkKeywords(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='double', pktSize=8192, checkOutputSize=True, streamID="tfd-stream-1", expectedChanRf=0.0):
+        """ Check Keywords CHAN_RF and COL_RF
+           As applicable
+        """
+        out=[]
+        count=0
+        keywords = [sb.io_helpers.SRIKeyword('COL_RF',colRF, colRfType)]
+        numPushes = (len(inData)+pktSize-1)/pktSize
+        lastPush = numPushes-1
+        for i in xrange(numPushes):
+            eos = i==lastPush
+            self.src.push(inData[i*pktSize:(i+1)*pktSize],
+                          streamID=streamID,
+                          complexData = complexData, 
+                          sampleRate=sampleRate,
+                          SRIKeywords = keywords,
+                          EOS=eos)
+            newOut = self.sink.getData()
+            if newOut:
+                count += 1
+                out.extend(newOut)
+                sri_keywords = self.sink.sri().keywords
+                for sri_kw in sri_keywords:
+                    if sri_kw.id == 'COL_RF':
+                        self.assertAlmostEqual(sri_kw.value.value(),colRF)
+                    elif sri_kw.id == 'CHAN_RF':
+                        self.assertAlmostEqual(sri_kw.value.value(),expectedChanRf)
 
     def main(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='double', pktSize=8192, checkOutputSize=True, streamID="tfd-stream-1"):
         """The main engine for all the test cases - configure the equation, push data, and get output
