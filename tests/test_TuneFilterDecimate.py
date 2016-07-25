@@ -596,6 +596,21 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
     def testNormKwCx(self):
         self.tuneModeKwTest("NORM", True)
 
+    def testNormKwReal(self):
+        self.tuneModeKwTest("NORM", False)
+
+    def testRfKwCx(self):
+        self.tuneModeKwTest("RF", True)
+
+    def testRfKwReal(self):
+        self.tuneModeKwTest("RF", False)
+
+    def testIfKwCx(self):
+        self.tuneModeKwTest("IF", True)
+
+    def testIfKwReal(self):
+        self.tuneModeKwTest("IF", False)
+
     def testRfReal(self):
         self.tuneModeTest("RF", False)
 
