@@ -409,7 +409,9 @@ void TuneFilterDecimate_i::configureTFD(BULKIO::StreamSRI &sri) {
 		// If the TuneMode is RF, we actually need to retune
 		if (TuneMode == "RF") {
 			configureTuner("TuningRF");
-		}
+        } else if (TuneMode == "NORM") {
+            configureTuner("TuningNorm");
+        }
 		TuningRF = InputRF + TuningIF - chan_if;
 		LOG_DEBUG(TuneFilterDecimate_i, "Tuning RF: " << TuningRF);
 	}
