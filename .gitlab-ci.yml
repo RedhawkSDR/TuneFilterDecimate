@@ -1,6 +1,6 @@
 variables:
-  rh_20_release: '2.0.6'
-  rh_21_release: '2.1.1'
+  rh_20_release: '2.0.7'
+  rh_21_release: '2.1.2'
   dsp_version: '2.0.0'
   fftlib_version: '2.0.0'
   namespace: rh.
@@ -48,6 +48,7 @@ before_script:
   #Skip on tag of following format
   except:
     - /^(\d+\.)?(\d+)?(\.\d+)$/
+    - master
 
 .test: &test
   image: ${docker_registry}redhawk/buildenv:${short_version}-$dist-$arch
@@ -82,6 +83,7 @@ before_script:
   #Skip on tag of following format
   except:
     - /^(\d+\.)?(\d+)?(\.\d+)$/
+    - master
 
 package:el6:rh2.0:
   variables:
@@ -206,3 +208,4 @@ deploy:
   #Skip on tag of following format
   except:
     - /^(\d+\.)?(\d+)?(\.\d+)$/
+    - master
