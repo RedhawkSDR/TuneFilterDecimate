@@ -104,7 +104,6 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
             myProps.append(CF.DataType(id='TuningNorm',value=CORBA.Any(CORBA.TC_double, TuningNorm)))
 
         if myProps:
-            print "configuring with ", myProps
             #configure it
             self.comp.configure(myProps)
             print self.comp.query([])
@@ -145,55 +144,8 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         ossie.utils.testing.ScaComponentTestCase.tearDown(self)
 
     def setupComponent(self):
-        """Standard start-up for testing the component
-        """
-        #######################################################################
-        # Launch the component with the default execparams
-        execparams = self.getPropertySet(kinds=("execparam",), modes=("readwrite", "writeonly"), includeNil=False)
-        execparams = dict([(x.id, any.from_any(x.value)) for x in execparams])
-        if DEBUG_MODE:
-            execparams["DEBUG_LEVEL"] = 4
-        self.launch(execparams)
         
-        #######################################################################
-        # Verify the basic state of the component
-        self.assertNotEqual(self.comp, None)
-        self.assertEqual(self.comp.ref._non_existent(), False)
-        self.assertEqual(self.comp.ref._is_a("IDL:CF/Resource:1.0"), True)
-        #self.assertEqual(self.spd.get_id(), self.comp.ref._get_identifier())
-        
-        #######################################################################
-        # Simulate regular component startup
-        # Verify that initialize nor configure throw errors
-        #self.comp.initialize()
-        configureProps = self.getPropertySet(kinds=("configure",), modes=("readwrite", "writeonly"), includeNil=False)
-        self.comp.configure(configureProps)
-        
-        #######################################################################
-        # Validate that query returns all expected parameters
-        # Query of '[]' should return the following set of properties
-        expectedProps = []
-        expectedProps.extend(self.getPropertySet(kinds=("configure", "execparam"), modes=("readwrite", "readonly"), includeNil=True))
-        expectedProps.extend(self.getPropertySet(kinds=("allocate",), action="external", includeNil=True))
-        props = self.comp.query([])
-        props = dict((x.id, any.from_any(x.value)) for x in props)
-        # Query may return more than expected, but not less
-        for expectedProp in expectedProps:
-            self.assertEquals(props.has_key(expectedProp.id), True)
-        
-        #######################################################################
-        # Verify that all expected ports are available
-        for port in self.scd.get_componentfeatures().get_ports().get_uses():
-            port_obj = self.comp.getPort(str(port.get_usesname()))
-            self.assertNotEqual(port_obj, None)
-            self.assertEqual(port_obj._non_existent(), False)
-            self.assertEqual(port_obj._is_a("IDL:CF/Port:1.0"),  True)
-            
-        for port in self.scd.get_componentfeatures().get_ports().get_provides():
-            port_obj = self.comp.getPort(str(port.get_providesname()))
-            self.assertNotEqual(port_obj, None)
-            self.assertEqual(port_obj._non_existent(), False)
-            self.assertEqual(port_obj._is_a(port.get_repid()),  True)
+        self.comp = sb.launch(self.spd_file, impl=self.impl)
 
     def testNanOutput(self):
         """ This was a test case that produced NaN output due to floating round off error in calculating the window function for the filter
