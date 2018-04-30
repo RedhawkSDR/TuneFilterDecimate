@@ -710,8 +710,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
                 break
         
         self.assertEqual(self.sink._sink.gotEOS,1)
-
-        print self.comp.api()   
+ 
 
     def testMultiStream(self):
         
@@ -747,7 +746,6 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
                 print abs(a), abs(b)
                 raise
 
-        print self.comp.api()
 
 
     def checkKeywords(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='double', pktSize=8192, checkOutputSize=True, streamID="tfd-stream-1", expectedChanRf=0.0, chanRfType=None, chanRF=None):
