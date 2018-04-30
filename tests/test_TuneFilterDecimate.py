@@ -155,7 +155,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         freq = .25e6
         sig = genSinWave(fs, freq, 1024*1024)
  
-        out,stream = self.main(sig,sampleRate=3.125e6)
+        out = self.main(sig,sampleRate=3.125e6)
         
         self.assertTrue(len(out)>0)
         self.assertFalse(math.isnan(out[0].real) or math.isnan(out[0].imag))
@@ -171,7 +171,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         #sig = genSinWave(fs, freq, 1024*1024)
         sig = [1]*5000000
  
-        out,stream = self.main(sig,sampleRate=fs, complexData=False)
+        out = self.main(sig,sampleRate=fs, complexData=False)
         
         self.assertTrue(len(out)>0)
         print "got %s out" %len(out)
@@ -204,7 +204,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         self.setProps(TuneMode="IF", TuningIF=freq,FilterBW=300.0, DesiredOutputRate=700.0)
         sig = genSinWave(fs, freq, 1024*1024)
  
-        out,stream = self.main(sig,sampleRate=fs)
+        out = self.main(sig,sampleRate=fs)
         self.verifyConst(out)
 
     def testCxNormOutput(self):
@@ -216,7 +216,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         self.setProps(TuneMode="NORM", TuningNorm=freq,FilterBW=300.0, DesiredOutputRate=700.0)
         sig = genSinWave(fs, freq, 1024*1024)
  
-        out,stream = self.main(sig,sampleRate=fs)
+        out = self.main(sig,sampleRate=fs)
         self.verifyConst(out)
 
     def testCxRfTune(self):
@@ -229,7 +229,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         self.setProps(TuningRF=int(tuneRf),FilterBW=200.0, DesiredOutputRate=1000.0)
         sig = genSinWave(fs, freq, 1024*1024)
         
-        out,stream = self.main(sig, fs, colRF=colRF)
+        out = self.main(sig, fs, colRF=colRF)
         self.verifyConst(out)
 
     def testRealRfTune(self):
@@ -242,7 +242,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         self.setProps(TuningRF=int(tuneRf),FilterBW=200.0, DesiredOutputRate=1000.0)
         sig = genSinWave(fs, freq, 1024*1024, cx=False)
         
-        out,stream = self.main(sig, fs, colRF=colRF,complexData=False)
+        out = self.main(sig, fs, colRF=colRF,complexData=False)
         self.verifyConst(out)            
  
     def testOutputBW(self):
@@ -257,7 +257,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         #    input.append(0.0)
         
 
-        out,stream = self.main(input,sampleRate=T)
+        out = self.main(input,sampleRate=T)
         self.assertTrue(len(out)>0)
         sri = self.sink.sri() 
         steadyState = out[100:]
@@ -333,7 +333,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
             input.append(val.imag)
 
         #now we have an expected input and output run the puppy
-        out,stream = self.main(input,T)
+        out = self.main(input,T)
         
         #git rid of the first few points because of steady state error
         steadyState = out[100:]
@@ -372,7 +372,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         print "doImpulseResponse, cx = ", cmplx
         sig = [1]
         sig.extend([0]*(1024*1024-1))
-        out,stream = self.main(sig,sampleRate=fs,complexData=cmplx)
+        out = self.main(sig,sampleRate=fs,complexData=cmplx)
         filtLen = int(self.comp.taps)
         fftNum = 2**int(math.ceil(math.log(filtLen, 2))+1)
         freqResponse = [20*math.log(max(abs(x),1e-9),10) for x in scipy.fftpack.fftshift(scipy.fftpack.fft(out,fftNum))]
@@ -421,7 +421,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
 
        sig = genSinWave(inpRate, 1000, 1024*1024)
        self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[128,dw,delta])
-       out,stream = self.main(sig,inpRate);
+       out = self.main(sig,inpRate);
 
        props = self.comp.query([])
        propDict = dict((x.id, any.from_any(x.value)) for x in props)
@@ -443,7 +443,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
 
        sig = genSinWave(inpRate, 1000, 1024*1024)
        self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[fft,dw,delta])
-       out,stream = self.main(sig,inpRate);
+       out = self.main(sig,inpRate);
 
        props = self.comp.query([])
        propDict = dict((x.id, any.from_any(x.value)) for x in props)
@@ -465,7 +465,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
 
        sig = genSinWave(inpRate, 1000, 1024*1024)
        self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[fft,dw,delta])
-       out,stream = self.main(sig,inpRate);
+       out = self.main(sig,inpRate);
 
        props = self.comp.query([])
        propDict = dict((x.id, any.from_any(x.value)) for x in props)
@@ -487,7 +487,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
 
        sig = genSinWave(inpRate, 1000, 1024*1024)
        self.setProps(FilterBW=fBW, DesiredOutputRate=fs, filterProps=[fft,dw,delta])
-       out,stream = self.main(sig,inpRate);
+       out = self.main(sig,inpRate);
 
        props = self.comp.query([])
        propDict = dict((x.id, any.from_any(x.value)) for x in props)
@@ -630,7 +630,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         else:
             raise RuntimeError("invalid tune mode")
         
-        out,stream = self.main(sig,inpRate, colRF=colRF, complexData=cmplx, colRfType=colRfType)
+        out = self.main(sig,inpRate, colRF=colRF, complexData=cmplx, colRfType=colRfType)
 
         if DEBUG_MODE:
             self.comp.api()
@@ -689,36 +689,29 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         self.assertEqual(tuneNorm, self.comp.TuningNorm)
 
     def testNoEOS(self):
-        inpRate = 2e6
-        desiredOutRate = 1e6
+        inpRate = 25e6
+        desiredOutRate = 2e6
         
-        numSamples=16384
+        numSamples=12345
         
         sig = [1000*random.random() for _ in xrange(numSamples)]
         
         self.comp.TuneMode ="IF"
         self.comp.TuningIF = 3.6e6
-        self.comp.FilterBW = 8e5
-        self.comp.DesiredOutputRate = 1e6
+        self.comp.FilterBW = 2.05e6
+        self.comp.DesiredOutputRate = 2e6
         
-
-        out,stream = self.main(sig,inpRate, complexData=False, pktSize=1)
-
-        #stream = self.sink.getCurrentStream(10)
-
-        if not stream:
-            print "Did not find an output stream"
-            self.assertFalse("No Output Stream")    
-        count = 0
-        while True:
-            if stream.eos():
-                break
+        out = self.main(sig,inpRate, complexData=False, pktSize=1)
+        count=0
+        while not self.sink._sink.gotEOS:
             time.sleep(.01)
             count+=1
             if count==500:
                 break
-        self.assertNotEqual(count,500)
+        
+        self.assertEqual(self.sink._sink.gotEOS,1)
 
+        print self.comp.api()   
 
     def testMultiStream(self):
         
@@ -735,11 +728,11 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         self.comp.FilterBW = 2.05e6
         self.comp.DesiredOutputRate = 2e6
         
-        outA,stream = self.main(sig,inpRate, complexData=True, streamID="tfd-stream-outA")
+        outA = self.main(sig,inpRate, complexData=True, streamID="tfd-stream-outA")
         self.src.reset()
         self.sink.reset()
 
-        outB,stream = self.main(sig,inpRate, complexData=True, streamID="tfd-stream-outB")
+        outB = self.main(sig,inpRate, complexData=True, streamID="tfd-stream-outB")
 
         print "input lenght %s" %len(sig)
         print "got output %s, %s" %(len(outA), len(outB))
@@ -754,6 +747,7 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
                 print abs(a), abs(b)
                 raise
 
+        print self.comp.api()
 
 
     def checkKeywords(self,inData, sampleRate, colRF=0.0, complexData = True, colRfType='double', pktSize=8192, checkOutputSize=True, streamID="tfd-stream-1", expectedChanRf=0.0, chanRfType=None, chanRF=None):
@@ -804,23 +798,14 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
                           SRIKeywords = keywords,
                           EOS=eos)
         out=[]
-        count=0
         while True:
-            stream = self.sink.getCurrentStream(5)
-            dataBlock = None
-            if stream:
-                dataBlock = stream.read()
-            else:
-                count+=1
-                continue
-            if dataBlock:    
-                newOut = dataBlock.data()
+            newOut = self.sink.getData()
+            if newOut:
                 out.extend(newOut)
                 count=0
-            elif stream.eos():
+            elif self.sink._sink.gotEOS:
                 break
             elif count==200:
-                print "Count reached 200, gave up trying to get data"
                 break
             time.sleep(.01)
             count+=1
@@ -834,17 +819,17 @@ class ComponentTests(ossie.utils.testing.ScaComponentTestCase):
         
         outCx = toCx(out)
         if checkOutputSize:
+            print "checking output size"
             frameSize = self.comp.filterProps.FFT_size-self.comp.taps+1
             inDataNum = len(inData)
             if complexData:
                 inDataNum/=2
+            
             expectedCompleteFrames = inDataNum/frameSize # int, truncated if incomplete last frame
             outDataNum = math.ceil(expectedCompleteFrames*frameSize/expectedDecimation)
                 # round up if there is a fractional number of expected output samples
             self.assertEqual(outDataNum, len(outCx))
-
-        
-        return outCx,stream
+        return outCx
     
 if __name__ == "__main__":
     ossie.utils.testing.main("../TuneFilterDecimate.spd.xml") # By default tests all implementations
